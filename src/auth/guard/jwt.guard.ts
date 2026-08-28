@@ -6,4 +6,4 @@ import { AuthGuard } from '@nestjs/passport';
  * Se usa con @UseGuards(JwtAuthGuard) en controladores
  */
 @Injectable()
-export class JwtAuthGuard extends AuthGuard('jwt') {}
+export class JwtGuard extends AuthGuard('jwt') {}
