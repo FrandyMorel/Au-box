@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+enum AutomationStatus {
+  ACTIVE
+  MAINTENANCE
+  DISCONTINUED
+}
+
+enum IncidentStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum IncidentPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+model User {
+  id            Int       @id @default(autoincrement())
+  email         String    @unique
+  name          String
+  passwordHash  String
+  role          UserRole  @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  automations   Automation[]
+  incidents     Incident[]
+
+  @@map("users")
+}
+
+model Automation {
+  id              Int       @id @default(autoincrement())
+  name            String
+  description     String
+  status          AutomationStatus @default(ACTIVE)
+  requestedBy     String
+  implementDate   DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  userId          Int
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  incidents       Incident[]
+
+  @@map("automations")
+}
+
+model Incident {
+  id              Int       @id @default(autoincrement())
+  name            String
+  description     String
+  status          IncidentStatus @default(OPEN)
+  priority        IncidentPriority @default(MEDIUM)
+  reportedAt      DateTime  @default(now())
+  resolvedAt      DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  automationId    Int
+  automation      Automation @relation(fields: [automationId], references: [id], onDelete: Cascade)
+  
+  userId          Int
+  user            User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("incidents")
+}
