@@ -1,8 +1,13 @@
 import { Module } from '@nestjs/common';
-import { PrismaService } from './prisma.service';
+import { PrismaClient } from '@prisma/client';
 
 @Module({
-  providers: [PrismaService],
-  exports: [PrismaService],
+  providers: [
+    {
+      provide: PrismaClient,
+      useValue: new PrismaClient(),
+    },
+  ],
+  exports: [PrismaClient],
 })
 export class PrismaModule {}
