@@ -3,13 +3,20 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { AutomationsModule } from './automation/automation.module';
 import { UserModule } from './user/user.module';
-import { IncidentModule } from './incident/incident.module';
+import { IncidentsModule } from './incident/incident.module';
 import { DashboardController } from './dashboard/dashboard.controller';
 import { DashboardService } from './dashboard/dashboard.service';
 import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, AutomationsModule, UserModule, IncidentModule, DashboardModule],
+  imports: [
+    PrismaModule,
+    AuthModule,
+    AutomationsModule,
+    UserModule,
+    IncidentsModule,
+    DashboardModule,
+  ],
   controllers: [DashboardController],
   providers: [DashboardService],
 })

@@ -4,22 +4,19 @@ import {
   BadRequestException,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { PrismaClient, User } from '@prisma/client';
+import { User } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import type { UpdateUserNameDto, ChangePasswordDto } from './dto/user.dto';
+import { PrismaService } from '../prisma/prisma.service';
 import type {
   UserResponseDto,
   UpdateUserNameResponseDto,
   ChangePasswordResponseDto,
 } from './dto/user-response.dto';
 
-/**
- * Servicio de usuario
- * Maneja la lógica de negocio para las operaciones del usuario
- */
 @Injectable()
 export class UserService {
-  constructor(private readonly prisma: PrismaClient) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   /**
    * Obtiene la información del usuario autenticado

@@ -4,7 +4,7 @@ import {
   BadRequestException,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { PrismaClient, AutomationStatus } from '@prisma/client';
+import { AutomationStatus, Prisma } from '@prisma/client';
 import type {
   CreateAutomationDto,
   UpdateAutomationDto,
@@ -19,8 +19,8 @@ import type {
   IStatisticsResponse,
   IPaginatedResponse,
   IDeleteResponse,
-  IAutomationWhereInput,
 } from './interfaces/automation.interface';
+import { PrismaService } from '../prisma/prisma.service';
 
 /**
  * Servicio para gestionar automatizaciones, incluyendo búsqueda, filtros y control de estados
@@ -28,7 +28,7 @@ import type {
  */
 @Injectable()
 export class AutomationsService {
-  constructor(private readonly prisma: PrismaClient) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   /**
    * Crear una nueva automatización
@@ -52,7 +52,7 @@ export class AutomationsService {
           implementDate: implementDate ? new Date(implementDate) : null,
           userId,
           status: AutomationStatus.ACTIVE,
-          statusChangedAt: new Date(), // 🆕 Registrar fecha de creación como primer cambio
+          statusChangedAt: new Date(),
         },
         include: {
           user: {
@@ -104,8 +104,7 @@ export class AutomationsService {
 
       const skip: number = (page - 1) * limit;
 
-      // Construir donde cláusula
-      const where: IAutomationWhereInput = this.buildWhereClause(
+      const where: Prisma.AutomationWhereInput = this.buildWhereClause(
         search,
         status,
         requestedBy,
@@ -410,7 +409,6 @@ export class AutomationsService {
 
   /**
    * Cambiar el estado de una automatización
-   * 🆕 Registra automáticamente la fecha del cambio en statusChangedAt
    * @param id - ID de la automatización
    * @param updateStatusDto - Nuevo estado
    * @returns Automatización actualizada
@@ -434,12 +432,11 @@ export class AutomationsService {
         );
       }
 
-      // 🆕 Registrar la fecha del cambio de estado
       const updatedAutomation = await this.prisma.automation.update({
         where: { id },
         data: {
           status: updateStatusDto.status,
-          statusChangedAt: new Date(), // 🆕 Registrar timestamp del cambio
+          statusChangedAt: new Date(),
         },
         include: {
           user: {
@@ -512,7 +509,6 @@ export class AutomationsService {
 
   /**
    * Obtener estadísticas de automatizaciones
-   * Estados: ACTIVE, COMPLETED, IN_INCIDENT
    * @param userId - ID del usuario (opcional, para filtrar por usuario)
    * @returns Estadísticas de automatizaciones
    */
@@ -565,8 +561,8 @@ export class AutomationsService {
       return {
         total,
         active,
-        completed, // 🆕 Renombrado de maintenance
-        inIncident, // 🆕 Renombrado de discontinued
+        completed,
+        inIncident,
         totalIncidents: incidents.length,
         openIncidents,
         requesters,
@@ -578,50 +574,50 @@ export class AutomationsService {
 
   /**
    * Construir la cláusula WHERE para búsqueda y filtros
-   * ✅ CORREGIDO: Usar spread operator para evitar asignación a propiedades readonly
-   * @param search - Término de búsqueda
-   * @param status - Estado a filtrar
-   * @param requestedBy - Solicitante a filtrar
-   * @returns Objeto WHERE para Prisma
+   * Usa tipos de Prisma directamente para compatibilidad total
    */
   private buildWhereClause(
     search: string | undefined,
     status: AutomationStatus | undefined,
     requestedBy: string | undefined,
-  ): IAutomationWhereInput {
-    // ✅ CORREGIDO: Construir el objeto de forma segura sin asignar a propiedades readonly
-    const whereConditions: IAutomationWhereInput = {};
+  ): Prisma.AutomationWhereInput {
+    const andConditions: Prisma.AutomationWhereInput[] = [];
 
-    // Construir objeto OR si hay búsqueda
-    if (search && search.length > 0) {
-      const orCondition = [
-        { name: { contains: search, mode: 'insensitive' as const } },
-        { description: { contains: search, mode: 'insensitive' as const } },
-      ];
-      Object.assign(whereConditions, { OR: orCondition });
+    if (search && search.trim().length > 0) {
+      andConditions.push({
+        OR: [
+          { name: { contains: search.trim(), mode: 'insensitive' } },
+          { description: { contains: search.trim(), mode: 'insensitive' } },
+        ],
+      });
     }
 
-    // Agregar filtro de estado
     if (status) {
-      Object.assign(whereConditions, { status });
+      andConditions.push({ status });
     }
 
-    // Agregar filtro de solicitante
-    if (requestedBy && requestedBy.length > 0) {
-      const requestedByCondition = {
-        contains: requestedBy,
-        mode: 'insensitive' as const,
-      };
-      Object.assign(whereConditions, { requestedBy: requestedByCondition });
+    if (requestedBy && requestedBy.trim().length > 0) {
+      andConditions.push({
+        requestedBy: {
+          contains: requestedBy.trim(),
+          mode: 'insensitive',
+        },
+      });
     }
 
-    return whereConditions;
+    if (andConditions.length === 0) {
+      return {};
+    }
+
+    if (andConditions.length === 1) {
+      return andConditions[0];
+    }
+
+    return { AND: andConditions };
   }
 
   /**
    * Mapear una automatización de Prisma a respuesta DTO
-   * @param automation - Automatización con relaciones
-   * @returns Automatización mapeada a IAutomationResponse
    */
   private mapAutomationToResponse(
     automation: IAutomationWithRelations,
@@ -638,7 +634,7 @@ export class AutomationsService {
       status: automation.status,
       requestedBy: automation.requestedBy,
       implementDate: automation.implementDate,
-      statusChangedAt: automation.statusChangedAt, // 🆕 Incluir en respuesta
+      statusChangedAt: automation.statusChangedAt,
       createdAt: automation.createdAt,
       updatedAt: automation.updatedAt,
       createdByUser: {
@@ -655,13 +651,11 @@ export class AutomationsService {
 
   /**
    * Manejar errores de base de datos
-   * ✅ CORREGIDO: Tipo unknown en catch para evitar unsafe assignment
-   * @param error - Error capturado (tipo unknown)
-   * @param operation - Nombre de la operación
-   * @throws InternalServerErrorException con mensaje genérico
    */
   private handleDatabaseError(error: unknown, operation: string): never {
-    console.error(`Error durante ${operation}:`, error);
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error';
+    console.error(`Error durante ${operation}:`, errorMessage);
 
     if (error instanceof BadRequestException) {
       throw error;

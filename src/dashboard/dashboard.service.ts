@@ -4,7 +4,7 @@ import {
   BadRequestException,
   Logger,
 } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+
 import type {
   IDashboardOverview,
   IAutomationStats,
@@ -16,6 +16,7 @@ import type {
   IPeriodStat,
   IPeriodParam,
 } from './interface/dashboard.interface';
+import { PrismaService } from '../prisma/prisma.service';
 
 /**
  * Servicio de Dashboard
@@ -25,7 +26,7 @@ import type {
 export class DashboardService {
   private readonly logger: Logger = new Logger(DashboardService.name);
 
-  constructor(private readonly prisma: PrismaClient) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   /**
    * Obtener overview general del dashboard

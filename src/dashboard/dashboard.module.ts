@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { DashboardController } from './dashboard.controller';
 import { DashboardService } from './dashboard.service';
+import { PrismaModule } from '../prisma/prisma.module';
 
 /**
  * Módulo de Dashboard
@@ -15,6 +16,7 @@ import { DashboardService } from './dashboard.service';
  * Requiere autenticación JWT para todos los endpoints
  */
 @Module({
+  imports: [PrismaModule],
   controllers: [DashboardController],
   providers: [DashboardService],
   exports: [DashboardService],
