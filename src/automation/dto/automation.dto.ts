@@ -75,7 +75,7 @@ export class UpdateAutomationDto {
 
   @IsOptional()
   @IsEnum(AutomationStatus, {
-    message: 'El estado debe ser ACTIVE, MAINTENANCE o DISCONTINUED',
+    message: 'El estado debe ser ACTIVE, COMPLETED o IN_INCIDENT',
   })
   readonly status?: AutomationStatus;
 }
@@ -115,7 +115,7 @@ export class UpdateImplementationDateDto {
  */
 export class UpdateStatusDto {
   @IsEnum(AutomationStatus, {
-    message: 'El estado debe ser ACTIVE, MAINTENANCE o DISCONTINUED',
+    message: 'El estado debe ser ACTIVE, COMPLETED o IN_INCIDENT',
   })
   @IsNotEmpty({ message: 'El estado es requerido' })
   readonly status!: AutomationStatus;
@@ -149,7 +149,7 @@ export class SearchAndFilterDto extends PaginationDto {
 
   @IsOptional()
   @IsEnum(AutomationStatus, {
-    message: 'El estado debe ser ACTIVE, MAINTENANCE o DISCONTINUED',
+    message: 'El estado debe ser ACTIVE, COMPLETED o IN_INCIDENT',
   })
   readonly status?: AutomationStatus;
 
@@ -171,6 +171,7 @@ export class AutomationResponseDto {
   readonly status!: AutomationStatus;
   readonly requestedBy!: string;
   readonly implementDate!: Date | null;
+  readonly statusChangedAt!: Date | null; // 🆕 Fecha del último cambio de estado
   readonly createdAt!: Date;
   readonly updatedAt!: Date;
   readonly createdByUser!: {

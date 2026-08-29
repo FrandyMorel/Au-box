@@ -32,7 +32,8 @@ import type {
 } from './interfaces/automation.interface';
 
 /**
- * Controlador para gestionar automatizaciones, incluyendo búsqueda y filtros
+ * Controlador para gestionar automatizaciones, incluyendo búsqueda, filtros y control de estados
+ * Estados disponibles: ACTIVE, COMPLETED, IN_INCIDENT
  */
 @Controller('automations')
 @UseGuards(JwtGuard)
@@ -44,7 +45,7 @@ export class AutomationsController {
    * POST /automations
    * @param createAutomationDto - Datos para crear la automatización
    * @param userId - ID del usuario autenticado
-   * @returns Automatización creada
+   * @returns Automatización creada con estado ACTIVE por defecto
    */
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -63,8 +64,9 @@ export class AutomationsController {
    * Obtener estadísticas de automatizaciones
    * GET /automations/stats/overview
    * NOTA: Este endpoint debe estar ANTES de /:id para evitar conflictos de rutas
-   * @param userId - ID del usuario (opcional)
-   * @returns Estadísticas de automatizaciones
+   * Estados: ACTIVE (activas), COMPLETED (completadas), IN_INCIDENT (con incidencia)
+   * @param userId - ID del usuario (opcional) para filtrar por usuario específico
+   * @returns Estadísticas: total, activas, completadas, con incidencia, incidentes totales y abiertos
    */
   @Get('stats/overview')
   @HttpCode(HttpStatus.OK)
@@ -75,10 +77,15 @@ export class AutomationsController {
   }
 
   /**
-   * Obtener todas las automatizaciones con búsqueda y filtros
+   * Obtener todas las automatizaciones con búsqueda y filtros avanzados
    * GET /automations
    * @param query - Parámetros de búsqueda, filtros y paginación
-   * @returns Automatizaciones paginadas
+   *   - search: Busca en nombre y descripción (insensible a mayúsculas)
+   *   - status: ACTIVE | COMPLETED | IN_INCIDENT
+   *   - requestedBy: Filtro por solicitante (insensible a mayúsculas)
+   *   - page: Número de página (default: 1)
+   *   - limit: Elementos por página (default: 10, máx: 100)
+   * @returns Automatizaciones paginadas con metadata
    */
   @Get()
   @HttpCode(HttpStatus.OK)
@@ -89,10 +96,10 @@ export class AutomationsController {
   }
 
   /**
-   * Obtener una automatización por ID
+   * Obtener una automatización específica por ID
    * GET /automations/:id
    * @param id - ID de la automatización
-   * @returns Automatización encontrada
+   * @returns Automatización con detalles completos (usuario, incidentes, etc.)
    */
   @Get(':id')
   @HttpCode(HttpStatus.OK)
@@ -105,9 +112,10 @@ export class AutomationsController {
   /**
    * Actualizar información general de una automatización
    * PATCH /automations/:id
+   * Solo el propietario puede actualizar su automatización
    * @param id - ID de la automatización
-   * @param updateAutomationDto - Datos a actualizar
-   * @param userId - ID del usuario autenticado
+   * @param updateAutomationDto - Campos a actualizar (nombre, descripción, estado)
+   * @param userId - ID del usuario autenticado (para verificar permisos)
    * @returns Automatización actualizada
    */
   @Patch(':id')
@@ -128,7 +136,7 @@ export class AutomationsController {
    * Actualizar el solicitante de una automatización
    * PATCH /automations/:id/requested-by
    * @param id - ID de la automatización
-   * @param updateRequestedByDto - Nuevo solicitante
+   * @param updateRequestedByDto - Nuevo nombre del solicitante
    * @returns Automatización actualizada
    */
   @Patch(':id/requested-by')
@@ -144,7 +152,7 @@ export class AutomationsController {
    * Actualizar la fecha de implementación
    * PATCH /automations/:id/implementation-date
    * @param id - ID de la automatización
-   * @param updateImplementationDateDto - Nueva fecha de implementación
+   * @param updateImplementationDateDto - Nueva fecha de implementación (ISO 8601)
    * @returns Automatización actualizada
    */
   @Patch(':id/implementation-date')
@@ -162,9 +170,16 @@ export class AutomationsController {
   /**
    * Cambiar el estado de una automatización
    * PATCH /automations/:id/status
+   * 🆕 Registra automáticamente la fecha del cambio en statusChangedAt
+   *
+   * Estados disponibles:
+   * - ACTIVE: Automatización en ejecución
+   * - COMPLETED: Automatización completada/terminada
+   * - IN_INCIDENT: Automatización con problemas o incidencia
+   *
    * @param id - ID de la automatización
-   * @param updateStatusDto - Nuevo estado
-   * @returns Automatización actualizada
+   * @param updateStatusDto - Nuevo estado (ACTIVE | COMPLETED | IN_INCIDENT)
+   * @returns Automatización actualizada con timestamp del cambio de estado
    */
   @Patch(':id/status')
   @HttpCode(HttpStatus.OK)
@@ -178,8 +193,10 @@ export class AutomationsController {
   /**
    * Eliminar una automatización
    * DELETE /automations/:id
+   * ⚠️ Al eliminar una automatización, todos los incidentes asociados se eliminan automáticamente (cascada)
+   *
    * @param id - ID de la automatización a eliminar
-   * @returns Respuesta con mensaje de confirmación
+   * @returns Respuesta con mensaje de confirmación e ID eliminado
    */
   @Delete(':id')
   @HttpCode(HttpStatus.OK)

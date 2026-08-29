@@ -1,8 +1,8 @@
 import { AutomationStatus, IncidentStatus } from '@prisma/client';
 
 /**
+ * IncidentPriority,
  * Interfaz base para una automatización
- * IncidentPriority,s
  */
 export interface IAutomation {
   readonly id: number;
@@ -11,6 +11,7 @@ export interface IAutomation {
   readonly status: AutomationStatus;
   readonly requestedBy: string;
   readonly implementDate: Date | null;
+  readonly statusChangedAt: Date | null; // 🆕 Fecha del último cambio de estado
   readonly createdAt: Date;
   readonly updatedAt: Date;
   readonly userId: number;
@@ -51,6 +52,7 @@ export interface IAutomationResponse {
   readonly status: AutomationStatus;
   readonly requestedBy: string;
   readonly implementDate: Date | null;
+  readonly statusChangedAt: Date | null; // 🆕 Fecha del último cambio de estado
   readonly createdAt: Date;
   readonly updatedAt: Date;
   readonly createdByUser: {
@@ -96,12 +98,13 @@ export interface IAutomationQueryOptions {
 
 /**
  * Interfaz para respuesta de estadísticas
+ * Estados: ACTIVE, COMPLETED, IN_INCIDENT
  */
 export interface IStatisticsResponse {
   readonly total: number;
   readonly active: number;
-  readonly maintenance: number;
-  readonly discontinued: number;
+  readonly completed: number; // 🆕 Renombrado de maintenance
+  readonly inIncident: number; // 🆕 Renombrado de discontinued
   readonly totalIncidents: number;
   readonly openIncidents: number;
   readonly requesters: string[];
@@ -130,21 +133,19 @@ export interface IDeleteResponse {
  * Interfaz para donde cláusula de Prisma (búsqueda y filtros)
  */
 export interface IAutomationWhereInput {
-  OR?: Array<{
-    name?: {
-      contains: string;
-      mode: 'insensitive';
+  readonly OR?: Array<{
+    readonly name?: {
+      readonly contains: string;
+      readonly mode: 'insensitive';
     };
-    description?: {
-      contains: string;
-      mode: 'insensitive';
+    readonly description?: {
+      readonly contains: string;
+      readonly mode: 'insensitive';
     };
   }>;
-
-  status?: AutomationStatus;
-
-  requestedBy?: {
-    contains: string;
-    mode: 'insensitive';
+  readonly status?: AutomationStatus;
+  readonly requestedBy?: {
+    readonly contains: string;
+    readonly mode: 'insensitive';
   };
 }

@@ -23,7 +23,8 @@ import type {
 } from './interfaces/automation.interface';
 
 /**
- * Servicio para gestionar automatizaciones, incluyendo búsqueda y filtros
+ * Servicio para gestionar automatizaciones, incluyendo búsqueda, filtros y control de estados
+ * Estados disponibles: ACTIVE, COMPLETED, IN_INCIDENT
  */
 @Injectable()
 export class AutomationsService {
@@ -51,6 +52,7 @@ export class AutomationsService {
           implementDate: implementDate ? new Date(implementDate) : null,
           userId,
           status: AutomationStatus.ACTIVE,
+          statusChangedAt: new Date(), // 🆕 Registrar fecha de creación como primer cambio
         },
         include: {
           user: {
@@ -408,6 +410,7 @@ export class AutomationsService {
 
   /**
    * Cambiar el estado de una automatización
+   * 🆕 Registra automáticamente la fecha del cambio en statusChangedAt
    * @param id - ID de la automatización
    * @param updateStatusDto - Nuevo estado
    * @returns Automatización actualizada
@@ -431,10 +434,12 @@ export class AutomationsService {
         );
       }
 
+      // 🆕 Registrar la fecha del cambio de estado
       const updatedAutomation = await this.prisma.automation.update({
         where: { id },
         data: {
           status: updateStatusDto.status,
+          statusChangedAt: new Date(), // 🆕 Registrar timestamp del cambio
         },
         include: {
           user: {
@@ -507,6 +512,7 @@ export class AutomationsService {
 
   /**
    * Obtener estadísticas de automatizaciones
+   * Estados: ACTIVE, COMPLETED, IN_INCIDENT
    * @param userId - ID del usuario (opcional, para filtrar por usuario)
    * @returns Estadísticas de automatizaciones
    */
@@ -518,17 +524,17 @@ export class AutomationsService {
 
       const where: WhereInput = userId ? { userId } : {};
 
-      const [total, active, maintenance, discontinued, incidents] =
+      const [total, active, completed, inIncident, incidents] =
         await Promise.all([
           this.prisma.automation.count({ where }),
           this.prisma.automation.count({
             where: { ...where, status: AutomationStatus.ACTIVE },
           }),
           this.prisma.automation.count({
-            where: { ...where, status: AutomationStatus.MAINTENANCE },
+            where: { ...where, status: AutomationStatus.COMPLETED },
           }),
           this.prisma.automation.count({
-            where: { ...where, status: AutomationStatus.DISCONTINUED },
+            where: { ...where, status: AutomationStatus.IN_INCIDENT },
           }),
           this.prisma.incident.findMany({
             where: userId ? { userId } : {},
@@ -559,8 +565,8 @@ export class AutomationsService {
       return {
         total,
         active,
-        maintenance,
-        discontinued,
+        completed, // 🆕 Renombrado de maintenance
+        inIncident, // 🆕 Renombrado de discontinued
         totalIncidents: incidents.length,
         openIncidents,
         requesters,
@@ -572,6 +578,7 @@ export class AutomationsService {
 
   /**
    * Construir la cláusula WHERE para búsqueda y filtros
+   * ✅ CORREGIDO: Usar spread operator para evitar asignación a propiedades readonly
    * @param search - Término de búsqueda
    * @param status - Estado a filtrar
    * @param requestedBy - Solicitante a filtrar
@@ -582,24 +589,33 @@ export class AutomationsService {
     status: AutomationStatus | undefined,
     requestedBy: string | undefined,
   ): IAutomationWhereInput {
-    const where: IAutomationWhereInput = {};
+    // ✅ CORREGIDO: Construir el objeto de forma segura sin asignar a propiedades readonly
+    const whereConditions: IAutomationWhereInput = {};
 
+    // Construir objeto OR si hay búsqueda
     if (search && search.length > 0) {
-      where.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } },
+      const orCondition = [
+        { name: { contains: search, mode: 'insensitive' as const } },
+        { description: { contains: search, mode: 'insensitive' as const } },
       ];
+      Object.assign(whereConditions, { OR: orCondition });
     }
 
+    // Agregar filtro de estado
     if (status) {
-      where.status = status;
+      Object.assign(whereConditions, { status });
     }
 
+    // Agregar filtro de solicitante
     if (requestedBy && requestedBy.length > 0) {
-      where.requestedBy = { contains: requestedBy, mode: 'insensitive' };
+      const requestedByCondition = {
+        contains: requestedBy,
+        mode: 'insensitive' as const,
+      };
+      Object.assign(whereConditions, { requestedBy: requestedByCondition });
     }
 
-    return where;
+    return whereConditions;
   }
 
   /**
@@ -622,6 +638,7 @@ export class AutomationsService {
       status: automation.status,
       requestedBy: automation.requestedBy,
       implementDate: automation.implementDate,
+      statusChangedAt: automation.statusChangedAt, // 🆕 Incluir en respuesta
       createdAt: automation.createdAt,
       updatedAt: automation.updatedAt,
       createdByUser: {
@@ -638,7 +655,8 @@ export class AutomationsService {
 
   /**
    * Manejar errores de base de datos
-   * @param error - Error capturado
+   * ✅ CORREGIDO: Tipo unknown en catch para evitar unsafe assignment
+   * @param error - Error capturado (tipo unknown)
    * @param operation - Nombre de la operación
    * @throws InternalServerErrorException con mensaje genérico
    */
