@@ -10,8 +10,8 @@ datasource db {
 
 enum AutomationStatus {
   ACTIVE
-  MAINTENANCE
-  DISCONTINUED
+  COMPLETED
+  IN_INCIDENT
 }
 
 enum IncidentStatus {
@@ -44,19 +44,20 @@ model User {
 }
 
 model Automation {
-  id              Int       @id @default(autoincrement())
-  name            String
-  description     String
-  status          AutomationStatus @default(ACTIVE)
-  requestedBy     String
-  implementDate   DateTime?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id                Int       @id @default(autoincrement())
+  name              String
+  description       String
+  status            AutomationStatus @default(ACTIVE)
+  requestedBy       String
+  implementDate     DateTime?
+  statusChangedAt   DateTime?                              
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
   
-  userId          Int
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId            Int
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   
-  incidents       Incident[]
+  incidents         Incident[]
 
   @@map("automations")
 }
