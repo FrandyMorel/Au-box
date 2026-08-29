@@ -1,6 +1,7 @@
 import { AutomationStatus, IncidentStatus } from '@prisma/client';
 
 /**
+ * IncidentPriority,
  * Interfaz base para una automatización
  */
 export interface IAutomation {
@@ -10,7 +11,7 @@ export interface IAutomation {
   readonly status: AutomationStatus;
   readonly requestedBy: string;
   readonly implementDate: Date | null;
-  readonly statusChangedAt: Date | null;
+  readonly statusChangedAt: Date | null; // 🆕 Fecha del último cambio de estado
   readonly createdAt: Date;
   readonly updatedAt: Date;
   readonly userId: number;
@@ -51,7 +52,7 @@ export interface IAutomationResponse {
   readonly status: AutomationStatus;
   readonly requestedBy: string;
   readonly implementDate: Date | null;
-  readonly statusChangedAt: Date | null;
+  readonly statusChangedAt: Date | null; // 🆕 Fecha del último cambio de estado
   readonly createdAt: Date;
   readonly updatedAt: Date;
   readonly createdByUser: {
@@ -102,8 +103,8 @@ export interface IAutomationQueryOptions {
 export interface IStatisticsResponse {
   readonly total: number;
   readonly active: number;
-  readonly completed: number;
-  readonly inIncident: number;
+  readonly completed: number; // 🆕 Renombrado de maintenance
+  readonly inIncident: number; // 🆕 Renombrado de discontinued
   readonly totalIncidents: number;
   readonly openIncidents: number;
   readonly requesters: string[];
@@ -126,4 +127,25 @@ export interface IPaginatedResponse<T> {
 export interface IDeleteResponse {
   readonly message: string;
   readonly id: number;
+}
+
+/**
+ * Interfaz para donde cláusula de Prisma (búsqueda y filtros)
+ */
+export interface IAutomationWhereInput {
+  readonly OR?: Array<{
+    readonly name?: {
+      readonly contains: string;
+      readonly mode: 'insensitive';
+    };
+    readonly description?: {
+      readonly contains: string;
+      readonly mode: 'insensitive';
+    };
+  }>;
+  readonly status?: AutomationStatus;
+  readonly requestedBy?: {
+    readonly contains: string;
+    readonly mode: 'insensitive';
+  };
 }
