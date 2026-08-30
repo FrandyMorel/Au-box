@@ -118,3 +118,47 @@ export interface AutomationStatistics {
   openIncidents: number;
   requesters: string[];
 }
+
+
+// ============================================
+// USERS
+// ============================================
+
+export interface User {
+  id: number;
+  email: string;
+  name: string;
+  department: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UpdateUserNameRequest {
+  name: string;
+}
+
+export interface UpdateUserNameResponse {
+  id: number;
+  name: string;
+  email: string;
+  department: string;
+  updatedAt: string;
+  message: string;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+export interface ChangePasswordResponse {
+  id: number;
+  email: string;
+  message: string;
+  updatedAt: string;
+}
+
+export interface MessageResponse {
+  message: string;
+}
