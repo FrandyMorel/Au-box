@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  --color-secondary: #6B4071;
+  --color-primary: #6B4071;
   --color-darkbg: #14243C;
 }
 
@@ -15,6 +15,54 @@ main {
   min-height: 100vh;
   min-height: 100dvh;
 }
+
+.buttonPrimary {
+  background: var(--color-primary);
+  color: white;
+  border-radius: 16px;
+  border: none;
+  cursor: pointer;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.buttonPrimary:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  transform: translateY(-2px);
+}
+
+.buttonSecondary {
+  background: transparent;
+  color: #6C6A84;
+  border-radius: 18px;
+  border: 1px solid #6C6A84;
+  cursor: pointer;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.buttonSecondary:hover {
+
+  background: #6C6A84;
+  color: white;
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.667);
+  transform: translateY(-2px);
+}
+
+.buttonAuth {
+  background: transparent;
+  color: #14243C;
+  border-radius: 18px;
+  border: 1px solid #14243C;
+  cursor: pointer;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.buttonSecondary:hover {
+  background: #14243C;
+  color: white;
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.667);
+  transform: translateY(-2px);
+}
+
 
 @layer utilities {
   .text-balance {
