@@ -2,19 +2,19 @@ export const itemSidebar = [
     {
         id: 1,
         title: "Dashboard",
-        icon: ,
-        link: "/dashboard",
+        icon: "",
+        link: "",
     },
     {
         id: 2,
         title: "Automatizaciones",
-        icon: ,
-        link: "/automatizaciones",
+        icon: "",
+        link: "",
     },
     {
         id: 3,
         title: "Incidencias",
-        icon: ,
-        link: "/incidencias",
+        icon: "",
+        link: "",
     },
 ];
