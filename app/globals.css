@@ -40,7 +40,6 @@ main {
 }
 
 .buttonSecondary:hover {
-
   background: #6C6A84;
   color: white;
   box-shadow: 0 4px 12px rgba(255, 255, 255, 0.667);
@@ -56,13 +55,18 @@ main {
   transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
-.buttonSecondary:hover {
+.buttonAuth:hover {
   background: #14243C;
   color: white;
   box-shadow: 0 4px 12px rgba(255, 255, 255, 0.667);
   transform: translateY(-2px);
 }
 
+.buttonAuth:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
 
 @layer utilities {
   .text-balance {
