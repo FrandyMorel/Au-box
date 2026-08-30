@@ -1,7 +1,12 @@
 import { AutomationStatus, IncidentStatus } from '@prisma/client';
 
 /**
- * IncidentPriority,
+ * ====================================
+ * INTERFACES DE AUTOMATIZACIÓN
+ * ====================================
+ */
+
+/**
  * Interfaz base para una automatización
  */
 export interface IAutomation {
@@ -11,7 +16,7 @@ export interface IAutomation {
   readonly status: AutomationStatus;
   readonly requestedBy: string;
   readonly implementDate: Date | null;
-  readonly statusChangedAt: Date | null; // 🆕 Fecha del último cambio de estado
+  readonly statusChangedAt: Date | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
   readonly userId: number;
@@ -44,6 +49,7 @@ export interface IAutomationWithRelations extends IAutomation {
 
 /**
  * Interfaz para respuesta de automatización (DTO de respuesta)
+ * ⭐ PRINCIPAL: Esto es lo que se devuelve al cliente
  */
 export interface IAutomationResponse {
   readonly id: number;
@@ -52,7 +58,7 @@ export interface IAutomationResponse {
   readonly status: AutomationStatus;
   readonly requestedBy: string;
   readonly implementDate: Date | null;
-  readonly statusChangedAt: Date | null; // 🆕 Fecha del último cambio de estado
+  readonly statusChangedAt: Date | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
   readonly createdByUser: {
@@ -97,21 +103,35 @@ export interface IAutomationQueryOptions {
 }
 
 /**
- * Interfaz para respuesta de estadísticas
- * Estados: ACTIVE, COMPLETED, IN_INCIDENT
+ * Interfaz para cláusula WHERE de Prisma (búsqueda y filtros)
  */
-export interface IStatisticsResponse {
-  readonly total: number;
-  readonly active: number;
-  readonly completed: number; // 🆕 Renombrado de maintenance
-  readonly inIncident: number; // 🆕 Renombrado de discontinued
-  readonly totalIncidents: number;
-  readonly openIncidents: number;
-  readonly requesters: string[];
+export interface IAutomationWhereInput {
+  readonly OR?: Array<{
+    readonly name?: {
+      readonly contains: string;
+      readonly mode: 'insensitive';
+    };
+    readonly description?: {
+      readonly contains: string;
+      readonly mode: 'insensitive';
+    };
+  }>;
+  readonly status?: AutomationStatus;
+  readonly requestedBy?: {
+    readonly contains: string;
+    readonly mode: 'insensitive';
+  };
 }
 
 /**
+ * ====================================
+ * INTERFACES DE RESPUESTA GENÉRICA
+ * ====================================
+ */
+
+/**
  * Interfaz genérica para respuesta paginada
+ * ⭐ PRINCIPAL: Usado en findAll()
  */
 export interface IPaginatedResponse<T> {
   readonly data: T[];
@@ -130,22 +150,15 @@ export interface IDeleteResponse {
 }
 
 /**
- * Interfaz para donde cláusula de Prisma (búsqueda y filtros)
+ * Interfaz para respuesta de estadísticas
+ * Estados: ACTIVE, COMPLETED, IN_INCIDENT
  */
-export interface IAutomationWhereInput {
-  readonly OR?: Array<{
-    readonly name?: {
-      readonly contains: string;
-      readonly mode: 'insensitive';
-    };
-    readonly description?: {
-      readonly contains: string;
-      readonly mode: 'insensitive';
-    };
-  }>;
-  readonly status?: AutomationStatus;
-  readonly requestedBy?: {
-    readonly contains: string;
-    readonly mode: 'insensitive';
-  };
+export interface IStatisticsResponse {
+  readonly total: number;
+  readonly active: number;
+  readonly completed: number;
+  readonly inIncident: number;
+  readonly totalIncidents: number;
+  readonly openIncidents: number;
+  readonly requesters: string[];
 }

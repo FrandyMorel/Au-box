@@ -1,59 +1,56 @@
 import {
   Injectable,
-  NotFoundException,
   BadRequestException,
+  NotFoundException,
+  ForbiddenException,
   InternalServerErrorException,
+  ConflictException,
 } from '@nestjs/common';
-import { AutomationStatus } from '@prisma/client';
-import type {
-  CreateAutomationDto,
-  UpdateAutomationDto,
-  UpdateRequestedByDto,
-  UpdateImplementationDateDto,
-  UpdateStatusDto,
-  SearchAndFilterDto,
-} from './dto/automation.dto';
-import type {
+import { PrismaService } from '../prisma/prisma.service';
+import { AutomationStatus, IncidentStatus } from '@prisma/client';
+import {
   IAutomationResponse,
-  IAutomationWithRelations,
-  IStatisticsResponse,
   IPaginatedResponse,
   IDeleteResponse,
+  IStatisticsResponse,
   IAutomationWhereInput,
 } from './interfaces/automation.interface';
-import { PrismaService } from '../prisma/prisma.service';
+import { CreateAutomationDto } from './dto/create-automation.dto';
+import { UpdateAutomationDto } from './dto/update-automation.dto';
+import { SearchAndFilterDto } from './dto/search-filter.dto';
 
-/**
- * Servicio para gestionar automatizaciones, incluyendo búsqueda, filtros y control de estados
- * Estados disponibles: ACTIVE, COMPLETED, IN_INCIDENT
- */
 @Injectable()
 export class AutomationsService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
    * Crear una nueva automatización
-   * @param createAutomationDto - Datos para crear la automatización
-   * @param userId - ID del usuario que crea la automatización
-   * @returns Automatización creada
    */
   async create(
     createAutomationDto: CreateAutomationDto,
     userId: number,
   ): Promise<IAutomationResponse> {
     try {
-      const { name, description, requestedBy, implementDate } =
-        createAutomationDto;
+      if (
+        !createAutomationDto.name ||
+        !createAutomationDto.description ||
+        !createAutomationDto.requestedBy
+      ) {
+        throw new BadRequestException(
+          'Nombre, descripción y solicitante son requeridos',
+        );
+      }
 
       const automation = await this.prisma.automation.create({
         data: {
-          name: name.trim(),
-          description: description.trim(),
-          requestedBy: requestedBy.trim(),
-          implementDate: implementDate ? new Date(implementDate) : null,
+          name: createAutomationDto.name,
+          description: createAutomationDto.description,
+          requestedBy: createAutomationDto.requestedBy,
+          implementDate: createAutomationDto.implementDate
+            ? new Date(createAutomationDto.implementDate)
+            : null,
           userId,
           status: AutomationStatus.ACTIVE,
-          statusChangedAt: new Date(), // 🆕 Registrar fecha de creación como primer cambio
         },
         include: {
           user: {
@@ -79,39 +76,32 @@ export class AutomationsService {
   }
 
   /**
-   * Obtener todas las automatizaciones con búsqueda y filtros
-   * @param query - Parámetros de búsqueda, filtros y paginación
-   * @returns Respuesta paginada con automatizaciones
+   * Obtener todas las automatizaciones con filtros y paginación
    */
   async findAll(
     query: SearchAndFilterDto,
+    userId: number,
   ): Promise<IPaginatedResponse<IAutomationResponse>> {
     try {
-      const search: string | undefined = query.search?.trim();
-      const status: AutomationStatus | undefined = query.status;
-      const requestedBy: string | undefined = query.requestedBy?.trim();
-      const page: number = query.page ?? 1;
-      const limit: number = query.limit ?? 10;
+      const page = Math.max(1, query.page || 1);
+      const limit = Math.min(100, query.limit || 10);
+      const skip = (page - 1) * limit;
 
-      // Validar paginación
-      if (page < 1) {
-        throw new BadRequestException('La página debe ser mayor o igual a 1');
-      }
-      if (limit < 1 || limit > 100) {
-        throw new BadRequestException(
-          'El límite debe estar entre 1 y 100 elementos',
-        );
-      }
+      // Construir cláusula WHERE
+      const where = this.buildWhereClause(query);
 
-      const skip: number = (page - 1) * limit;
+      console.log('🔍 DEBUG - Query params:', {
+        search: query.search,
+        status: query.status,
+        requestedBy: query.requestedBy,
+        page,
+        limit,
+        skip,
+        userId,
+      });
+      console.log('🔍 DEBUG - Where clause:', JSON.stringify(where, null, 2));
 
-      // Construir donde cláusula
-      const where: IAutomationWhereInput = this.buildWhereClause(
-        search,
-        status,
-        requestedBy,
-      );
-
+      // Ejecutar queries en paralelo
       const [automations, total] = await Promise.all([
         this.prisma.automation.findMany({
           where,
@@ -139,36 +129,42 @@ export class AutomationsService {
         this.prisma.automation.count({ where }),
       ]);
 
-      const totalPages: number = Math.ceil(total / limit);
+      console.log('✅ DEBUG - Automations encontradas:', automations.length);
+
+      if (!automations || automations.length === 0) {
+        return {
+          data: [],
+          total: 0,
+          page,
+          limit,
+          totalPages: 0,
+        };
+      }
+
+      const mappedData = automations.map((automation) =>
+        this.mapAutomationToResponse(automation),
+      );
+
+      const totalPages = Math.ceil(total / limit);
 
       return {
-        data: automations.map((automation) =>
-          this.mapAutomationToResponse(automation as IAutomationWithRelations),
-        ),
+        data: mappedData,
         total,
         page,
         limit,
         totalPages,
       };
     } catch (error) {
-      if (error instanceof BadRequestException) {
-        throw error;
-      }
+      console.error('❌ ERROR COMPLETO en findAll:', error);
       this.handleDatabaseError(error, 'obtener automatizaciones');
     }
   }
 
   /**
    * Obtener una automatización por ID
-   * @param id - ID de la automatización
-   * @returns Automatización encontrada
    */
-  async findOne(id: number): Promise<IAutomationResponse> {
+  async findOne(id: number, userId: number): Promise<IAutomationResponse> {
     try {
-      if (!Number.isInteger(id) || id <= 0) {
-        throw new BadRequestException('El ID debe ser un número positivo');
-      }
-
       const automation = await this.prisma.automation.findUnique({
         where: { id },
         include: {
@@ -194,24 +190,21 @@ export class AutomationsService {
         );
       }
 
+      // Verificar que el usuario tenga acceso
+      if (automation.userId !== userId) {
+        throw new ForbiddenException(
+          'No tienes permiso para acceder a esta automatización',
+        );
+      }
+
       return this.mapAutomationToResponse(automation);
     } catch (error) {
-      if (
-        error instanceof NotFoundException ||
-        error instanceof BadRequestException
-      ) {
-        throw error;
-      }
       this.handleDatabaseError(error, 'obtener automatización');
     }
   }
 
   /**
-   * Actualizar información general de una automatización
-   * @param id - ID de la automatización
-   * @param updateAutomationDto - Datos a actualizar
-   * @param userId - ID del usuario que realiza la actualización
-   * @returns Automatización actualizada
+   * Actualizar automatización
    */
   async update(
     id: number,
@@ -219,40 +212,34 @@ export class AutomationsService {
     userId: number,
   ): Promise<IAutomationResponse> {
     try {
-      if (!Number.isInteger(id) || id <= 0) {
-        throw new BadRequestException('El ID debe ser un número positivo');
-      }
-
-      const automation = await this.prisma.automation.findUnique({
+      // Verificar que existe y pertenece al usuario
+      const existing = await this.prisma.automation.findUnique({
         where: { id },
       });
 
-      if (!automation) {
+      if (!existing) {
         throw new NotFoundException(
           `Automatización con ID ${id} no encontrada`,
         );
       }
 
-      if (automation.userId !== userId) {
-        throw new BadRequestException(
+      if (existing.userId !== userId) {
+        throw new ForbiddenException(
           'No tienes permiso para actualizar esta automatización',
         );
       }
 
-      const updateData: Record<string, unknown> = {};
-      if (updateAutomationDto.name !== undefined) {
-        updateData.name = updateAutomationDto.name.trim();
-      }
-      if (updateAutomationDto.description !== undefined) {
-        updateData.description = updateAutomationDto.description.trim();
-      }
-      if (updateAutomationDto.status !== undefined) {
-        updateData.status = updateAutomationDto.status;
-      }
-
-      const updatedAutomation = await this.prisma.automation.update({
+      const automation = await this.prisma.automation.update({
         where: { id },
-        data: updateData,
+        data: {
+          ...(updateAutomationDto.name && {
+            name: updateAutomationDto.name,
+          }),
+          ...(updateAutomationDto.description && {
+            description: updateAutomationDto.description,
+          }),
+          updatedAt: new Date(),
+        },
         include: {
           user: {
             select: {
@@ -270,177 +257,50 @@ export class AutomationsService {
         },
       });
 
-      return this.mapAutomationToResponse(updatedAutomation);
+      return this.mapAutomationToResponse(automation);
     } catch (error) {
-      if (
-        error instanceof NotFoundException ||
-        error instanceof BadRequestException
-      ) {
-        throw error;
-      }
       this.handleDatabaseError(error, 'actualizar automatización');
     }
   }
 
   /**
-   * Actualizar el solicitante de una automatización
-   * @param id - ID de la automatización
-   * @param updateRequestedByDto - Nuevo solicitante
-   * @returns Automatización actualizada
-   */
-  async updateRequestedBy(
-    id: number,
-    updateRequestedByDto: UpdateRequestedByDto,
-  ): Promise<IAutomationResponse> {
-    try {
-      if (!Number.isInteger(id) || id <= 0) {
-        throw new BadRequestException('El ID debe ser un número positivo');
-      }
-
-      const automation = await this.prisma.automation.findUnique({
-        where: { id },
-      });
-
-      if (!automation) {
-        throw new NotFoundException(
-          `Automatización con ID ${id} no encontrada`,
-        );
-      }
-
-      const updatedAutomation = await this.prisma.automation.update({
-        where: { id },
-        data: {
-          requestedBy: updateRequestedByDto.requestedBy.trim(),
-        },
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
-          },
-          incidents: {
-            select: {
-              id: true,
-              status: true,
-            },
-          },
-        },
-      });
-
-      return this.mapAutomationToResponse(updatedAutomation);
-    } catch (error) {
-      if (
-        error instanceof NotFoundException ||
-        error instanceof BadRequestException
-      ) {
-        throw error;
-      }
-      this.handleDatabaseError(error, 'actualizar solicitante');
-    }
-  }
-
-  /**
-   * Actualizar la fecha de implementación
-   * @param id - ID de la automatización
-   * @param updateImplementationDateDto - Nueva fecha de implementación
-   * @returns Automatización actualizada
-   */
-  async updateImplementationDate(
-    id: number,
-    updateImplementationDateDto: UpdateImplementationDateDto,
-  ): Promise<IAutomationResponse> {
-    try {
-      if (!Number.isInteger(id) || id <= 0) {
-        throw new BadRequestException('El ID debe ser un número positivo');
-      }
-
-      const automation = await this.prisma.automation.findUnique({
-        where: { id },
-      });
-
-      if (!automation) {
-        throw new NotFoundException(
-          `Automatización con ID ${id} no encontrada`,
-        );
-      }
-
-      const implementDate: Date = new Date(
-        updateImplementationDateDto.implementDate,
-      );
-      if (isNaN(implementDate.getTime())) {
-        throw new BadRequestException(
-          'La fecha de implementación no es válida',
-        );
-      }
-
-      const updatedAutomation = await this.prisma.automation.update({
-        where: { id },
-        data: {
-          implementDate,
-        },
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
-          },
-          incidents: {
-            select: {
-              id: true,
-              status: true,
-            },
-          },
-        },
-      });
-
-      return this.mapAutomationToResponse(updatedAutomation);
-    } catch (error) {
-      if (
-        error instanceof NotFoundException ||
-        error instanceof BadRequestException
-      ) {
-        throw error;
-      }
-      this.handleDatabaseError(error, 'actualizar fecha de implementación');
-    }
-  }
-
-  /**
-   * Cambiar el estado de una automatización
-   * 🆕 Registra automáticamente la fecha del cambio en statusChangedAt
-   * @param id - ID de la automatización
-   * @param updateStatusDto - Nuevo estado
-   * @returns Automatización actualizada
+   * Actualizar estado de automatización
    */
   async updateStatus(
     id: number,
-    updateStatusDto: UpdateStatusDto,
+    status: string,
+    userId: number,
   ): Promise<IAutomationResponse> {
     try {
-      if (!Number.isInteger(id) || id <= 0) {
-        throw new BadRequestException('El ID debe ser un número positivo');
+      const validStatuses = Object.values(AutomationStatus);
+      if (!validStatuses.includes(status as AutomationStatus)) {
+        throw new BadRequestException(
+          `Estado inválido. Debe ser uno de: ${validStatuses.join(', ')}`,
+        );
       }
 
-      const automation = await this.prisma.automation.findUnique({
+      const existing = await this.prisma.automation.findUnique({
         where: { id },
       });
 
-      if (!automation) {
+      if (!existing) {
         throw new NotFoundException(
           `Automatización con ID ${id} no encontrada`,
         );
       }
 
-      // 🆕 Registrar la fecha del cambio de estado
-      const updatedAutomation = await this.prisma.automation.update({
+      if (existing.userId !== userId) {
+        throw new ForbiddenException(
+          'No tienes permiso para actualizar esta automatización',
+        );
+      }
+
+      const automation = await this.prisma.automation.update({
         where: { id },
         data: {
-          status: updateStatusDto.status,
-          statusChangedAt: new Date(), // 🆕 Registrar timestamp del cambio
+          status: status as AutomationStatus,
+          statusChangedAt: new Date(),
+          updatedAt: new Date(),
         },
         include: {
           user: {
@@ -459,36 +319,30 @@ export class AutomationsService {
         },
       });
 
-      return this.mapAutomationToResponse(updatedAutomation);
+      return this.mapAutomationToResponse(automation);
     } catch (error) {
-      if (
-        error instanceof NotFoundException ||
-        error instanceof BadRequestException
-      ) {
-        throw error;
-      }
-      this.handleDatabaseError(error, 'actualizar estado');
+      this.handleDatabaseError(error, 'actualizar estado de automatización');
     }
   }
 
   /**
-   * Eliminar una automatización
-   * @param id - ID de la automatización a eliminar
-   * @returns Respuesta con mensaje de confirmación
+   * Eliminar automatización
    */
-  async remove(id: number): Promise<IDeleteResponse> {
+  async delete(id: number, userId: number): Promise<IDeleteResponse> {
     try {
-      if (!Number.isInteger(id) || id <= 0) {
-        throw new BadRequestException('El ID debe ser un número positivo');
-      }
-
-      const automation = await this.prisma.automation.findUnique({
+      const existing = await this.prisma.automation.findUnique({
         where: { id },
       });
 
-      if (!automation) {
+      if (!existing) {
         throw new NotFoundException(
           `Automatización con ID ${id} no encontrada`,
+        );
+      }
+
+      if (existing.userId !== userId) {
+        throw new ForbiddenException(
+          'No tienes permiso para eliminar esta automatización',
         );
       }
 
@@ -501,76 +355,53 @@ export class AutomationsService {
         id,
       };
     } catch (error) {
-      if (
-        error instanceof NotFoundException ||
-        error instanceof BadRequestException
-      ) {
-        throw error;
-      }
       this.handleDatabaseError(error, 'eliminar automatización');
     }
   }
 
   /**
    * Obtener estadísticas de automatizaciones
-   * Estados: ACTIVE, COMPLETED, IN_INCIDENT
-   * @param userId - ID del usuario (opcional, para filtrar por usuario)
-   * @returns Estadísticas de automatizaciones
    */
-  async getStatistics(userId?: number): Promise<IStatisticsResponse> {
+  async getStatistics(userId: number): Promise<IStatisticsResponse> {
     try {
-      interface WhereInput {
-        readonly userId?: number;
-      }
+      const [
+        total,
+        active,
+        completed,
+        inIncident,
+        totalIncidents,
+        openIncidents,
+      ] = await Promise.all([
+        this.prisma.automation.count({ where: { userId } }),
+        this.prisma.automation.count({
+          where: { userId, status: AutomationStatus.ACTIVE },
+        }),
+        this.prisma.automation.count({
+          where: { userId, status: AutomationStatus.COMPLETED },
+        }),
+        this.prisma.automation.count({
+          where: { userId, status: AutomationStatus.IN_INCIDENT },
+        }),
+        this.prisma.incident.count({ where: {} }),
+        this.prisma.incident.count({
+          where: { status: IncidentStatus.OPEN },
+        }),
+      ]);
 
-      const where: WhereInput = userId ? { userId } : {};
-
-      const [total, active, completed, inIncident, incidents] =
-        await Promise.all([
-          this.prisma.automation.count({ where }),
-          this.prisma.automation.count({
-            where: { ...where, status: AutomationStatus.ACTIVE },
-          }),
-          this.prisma.automation.count({
-            where: { ...where, status: AutomationStatus.COMPLETED },
-          }),
-          this.prisma.automation.count({
-            where: { ...where, status: AutomationStatus.IN_INCIDENT },
-          }),
-          this.prisma.incident.findMany({
-            where: userId ? { userId } : {},
-            select: {
-              status: true,
-            },
-          }),
-        ]);
-
-      const openIncidents: number = incidents.filter(
-        (incident) => incident.status === 'OPEN',
-      ).length;
-
-      const automations = await this.prisma.automation.findMany({
-        where,
-        select: {
-          requestedBy: true,
-        },
+      const requesters = await this.prisma.automation.findMany({
+        where: { userId },
+        select: { requestedBy: true },
+        distinct: ['requestedBy'],
       });
-
-      const requestersSet: Set<string> = new Set(
-        automations.map((a) => a.requestedBy),
-      );
-      const requesters: string[] = Array.from(requestersSet).filter(
-        (req) => req && req.trim().length > 0,
-      );
 
       return {
         total,
         active,
-        completed, // 🆕 Renombrado de maintenance
-        inIncident, // 🆕 Renombrado de discontinued
-        totalIncidents: incidents.length,
+        completed,
+        inIncident,
+        totalIncidents,
         openIncidents,
-        requesters,
+        requesters: requesters.map((r) => r.requestedBy),
       };
     } catch (error) {
       this.handleDatabaseError(error, 'obtener estadísticas');
@@ -578,102 +409,147 @@ export class AutomationsService {
   }
 
   /**
-   * Construir la cláusula WHERE para búsqueda y filtros
-   * ✅ CORREGIDO: Usar spread operator para evitar asignación a propiedades readonly
-   * @param search - Término de búsqueda
-   * @param status - Estado a filtrar
-   * @param requestedBy - Solicitante a filtrar
-   * @returns Objeto WHERE para Prisma
+   * Construir cláusula WHERE para búsqueda y filtros
+   * ✅ ARREGLADO: Construye el objeto sin propiedades readonly
    */
-  private buildWhereClause(
-    search: string | undefined,
-    status: AutomationStatus | undefined,
-    requestedBy: string | undefined,
-  ): IAutomationWhereInput {
-    // ✅ CORREGIDO: Construir el objeto de forma segura sin asignar a propiedades readonly
-    const whereConditions: IAutomationWhereInput = {};
+  private buildWhereClause(query: SearchAndFilterDto): IAutomationWhereInput {
+    // ✅ Construir el objeto con todas las propiedades en un solo paso
+    const whereConditions: Record<string, unknown> = {};
 
-    // Construir objeto OR si hay búsqueda
-    if (search && search.length > 0) {
-      const orCondition = [
-        { name: { contains: search, mode: 'insensitive' as const } },
-        { description: { contains: search, mode: 'insensitive' as const } },
+    // Búsqueda por nombre o descripción
+    if (query.search && query.search.trim()) {
+      whereConditions.OR = [
+        {
+          name: {
+            contains: query.search.trim(),
+            mode: 'insensitive',
+          },
+        },
+        {
+          description: {
+            contains: query.search.trim(),
+            mode: 'insensitive',
+          },
+        },
       ];
-      Object.assign(whereConditions, { OR: orCondition });
     }
 
-    // Agregar filtro de estado
-    if (status) {
-      Object.assign(whereConditions, { status });
+    // Filtro por estado
+    if (query.status && query.status.trim()) {
+      const validStatuses = Object.values(AutomationStatus);
+      if (validStatuses.includes(query.status as AutomationStatus)) {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+        whereConditions.status = query.status as AutomationStatus;
+      }
     }
 
-    // Agregar filtro de solicitante
-    if (requestedBy && requestedBy.length > 0) {
-      const requestedByCondition = {
-        contains: requestedBy,
-        mode: 'insensitive' as const,
+    // Filtro por solicitante
+    if (query.requestedBy && query.requestedBy.trim()) {
+      whereConditions.requestedBy = {
+        contains: query.requestedBy.trim(),
+        mode: 'insensitive',
       };
-      Object.assign(whereConditions, { requestedBy: requestedByCondition });
     }
 
-    return whereConditions;
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+    return whereConditions as IAutomationWhereInput;
   }
 
   /**
-   * Mapear una automatización de Prisma a respuesta DTO
-   * @param automation - Automatización con relaciones
-   * @returns Automatización mapeada a IAutomationResponse
+   * Mapear Automation de BD a IAutomationResponse de forma segura
    */
-  private mapAutomationToResponse(
-    automation: IAutomationWithRelations,
-  ): IAutomationResponse {
-    const incidents = automation.incidents ?? [];
-    const activeIncidents: number = incidents.filter(
-      (incident) => incident.status === 'OPEN',
-    ).length;
+  private mapAutomationToResponse(automation: {
+    id: number;
+    name: string;
+    description: string;
+    status: AutomationStatus;
+    requestedBy: string;
+    implementDate: Date | null;
+    statusChangedAt: Date | null;
+    createdAt: Date;
+    updatedAt: Date;
+    user: {
+      id: number;
+      name: string;
+      email: string;
+    } | null;
+    incidents: Array<{
+      id: number;
+      status: string;
+    }>;
+  }): IAutomationResponse {
+    // ✅ VALIDAR QUE EL USUARIO EXISTE (CRÍTICO)
+    if (!automation.user) {
+      throw new InternalServerErrorException(
+        `Usuario no encontrado para automatización ID ${automation.id}`,
+      );
+    }
 
-    const response: IAutomationResponse = {
+    // ✅ CONTAR INCIDENTES ACTIVOS DE FORMA SEGURA
+    const activeIncidents =
+      automation.incidents && automation.incidents.length > 0
+        ? automation.incidents.filter(
+            (incident) => incident.status === IncidentStatus.OPEN,
+          ).length
+        : 0;
+
+    return {
       id: automation.id,
       name: automation.name,
       description: automation.description,
       status: automation.status,
       requestedBy: automation.requestedBy,
       implementDate: automation.implementDate,
-      statusChangedAt: automation.statusChangedAt, // 🆕 Incluir en respuesta
+      statusChangedAt: automation.statusChangedAt,
       createdAt: automation.createdAt,
       updatedAt: automation.updatedAt,
       createdByUser: {
-        id: automation.user?.id ?? 0,
-        name: automation.user?.name ?? '',
-        email: automation.user?.email ?? '',
+        id: automation.user.id,
+        name: automation.user.name,
+        email: automation.user.email,
       },
-      incidentCount: incidents.length,
+      incidentCount: automation.incidents?.length || 0,
       activeIncidents,
     };
-
-    return response;
   }
 
   /**
-   * Manejar errores de base de datos
-   * ✅ CORREGIDO: Tipo unknown en catch para evitar unsafe assignment
-   * @param error - Error capturado (tipo unknown)
-   * @param operation - Nombre de la operación
-   * @throws InternalServerErrorException con mensaje genérico
+   * Manejo centralizado de errores de BD
    */
-  private handleDatabaseError(error: unknown, operation: string): never {
-    console.error(`Error durante ${operation}:`, error);
+  private handleDatabaseError(error: unknown, context: string): never {
+    console.error(`❌ ERROR en ${context}:`, error);
 
     if (error instanceof BadRequestException) {
       throw error;
     }
-
     if (error instanceof NotFoundException) {
       throw error;
     }
+    if (error instanceof ForbiddenException) {
+      throw error;
+    }
+    if (error instanceof InternalServerErrorException) {
+      throw error;
+    }
+
+    // Manejo de errores de Prisma
+    if (typeof error === 'object' && error !== null && 'code' in error) {
+      const prismaError = error as { code: string; message?: string };
+
+      if (prismaError.code === 'P2025') {
+        throw new NotFoundException('Registro no encontrado');
+      }
+
+      if (prismaError.code === 'P2002') {
+        throw new ConflictException('El registro ya existe');
+      }
+    }
+
+    const errorMessage =
+      error instanceof Error ? error.message : 'Error desconocido';
 
     throw new InternalServerErrorException(
-      `Error al ${operation}. Por favor, intenta más tarde.`,
+      `Error al ${context}: ${errorMessage}`,
     );
   }
 }
