@@ -162,3 +162,67 @@ export interface ChangePasswordResponse {
 export interface MessageResponse {
   message: string;
 }
+
+// ============================================
+// DASHBOARD
+// ============================================
+
+export interface DashboardOverview {
+  automations: AutomationStatistics;
+  incidents: {
+    total: number;
+    open: number;
+    inProgress: number;
+    resolved: number;
+    closed: number;
+  };
+  requesters: string[];
+}
+
+export interface AutomationDashboardStats {
+  total: number;
+  active: number;
+  completed: number;
+  inIncident: number;
+}
+
+export interface IncidentDashboardStats {
+  total: number;
+  open: number;
+  inProgress: number;
+  resolved: number;
+  closed: number;
+}
+
+export interface DashboardRequester {
+  requester: string;
+  count: number;
+}
+
+export interface IncidentResolutionStats {
+  period: "year" | "month" | "week";
+  year: number;
+  month?: number;
+  week?: number;
+  total: number;
+  resolved: number;
+  closed: number;
+}
+
+export interface AutomationCompletionStats {
+  period: "year" | "month" | "week";
+  year: number;
+  month?: number;
+  week?: number;
+  total: number;
+  completed: number;
+}
+
+export interface IncidentTransitionStats {
+  period: "year" | "month" | "week";
+  year: number;
+  month?: number;
+  week?: number;
+  total: number;
+  transitions: number;
+}

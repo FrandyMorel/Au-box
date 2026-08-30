@@ -1,10 +1,5 @@
-import PrimaryButton from "./components/PrimaryButton";
-
+import { redirect } from "next/navigation";
 
 export default function Home() {
-  return (
-    <main>
-      <PrimaryButton />
-    </main>
-  );
+  redirect("/login");
 }

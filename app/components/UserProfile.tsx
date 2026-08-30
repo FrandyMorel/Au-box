@@ -17,7 +17,7 @@ export default function UserProfile({
   const [editingName, setEditingName] = useState(false);
 
   return (
-    <section className="rounded-xl border bg-white p-6 shadow-sm">
+    <section className="rounded-xl border bg-transparent p-6 shadow-sm">
       <div className="mb-6">
         <h2 className="text-lg font-semibold text-gray-900">
           Información personal
@@ -44,7 +44,7 @@ export default function UserProfile({
               <button
                 type="button"
                 onClick={() => setEditingName(true)}
-                className="mt-2 text-sm text-blue-600 hover:underline"
+                className="buttonSecondary mt-2 px-4 py-2 text-sm font-medium"
               >
                 Editar nombre
               </button>

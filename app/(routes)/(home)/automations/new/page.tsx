@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Swal from "sweetalert2";
 
 import AutomationForm, {
   type AutomationFormData,
@@ -22,7 +23,7 @@ export default function NewAutomationPage() {
       setLoading(true);
       setError("");
 
-      await apiClient<Automation>("/automations", {
+      const response = await apiClient<Automation>("/automations", {
         method: "POST",
         body: JSON.stringify({
           name: data.name,
@@ -30,6 +31,16 @@ export default function NewAutomationPage() {
           requestedBy: data.requestedBy,
           implementDate: data.implementDate || undefined,
         }),
+      });
+
+      // SweetAlert de éxito
+      await Swal.fire({
+        icon: "success",
+        title: "¡Automatización creada!",
+        text: `La automatización "${data.name}" ha sido registrada correctamente.`,
+        confirmButtonText: "Ir al listado",
+        confirmButtonColor: "#6B4071",
+        allowOutsideClick: false,
       });
 
       // Volver al listado después de crear
@@ -42,6 +53,15 @@ export default function NewAutomationPage() {
           : "No se pudo crear la automatización";
 
       setError(message);
+
+      // SweetAlert de error
+      await Swal.fire({
+        icon: "error",
+        title: "Error al crear",
+        text: message,
+        confirmButtonText: "Intentar de nuevo",
+        confirmButtonColor: "#DC2626",
+      });
 
       // Importante:
       // AutomationForm también puede mostrar errores propios.

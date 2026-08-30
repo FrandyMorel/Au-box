@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Swal from "sweetalert2";
 
 import AutomationForm, {
   type AutomationFormData,
@@ -78,6 +79,15 @@ export default function EditAutomationPage() {
         },
       );
 
+      // SweetAlert de éxito
+      await Swal.fire({
+        icon: "success",
+        title: "¡Éxito!",
+        text: "La automatización ha sido actualizada correctamente.",
+        confirmButtonText: "OK",
+        confirmButtonColor: "#6B4071",
+      });
+
       router.push("/automations");
       router.refresh();
     } catch (err) {
@@ -87,6 +97,15 @@ export default function EditAutomationPage() {
           : "No se pudo actualizar la automatización";
 
       setError(message);
+
+      // SweetAlert de error
+      await Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: message,
+        confirmButtonText: "Intentar de nuevo",
+        confirmButtonColor: "#DC2626",
+      });
 
       throw err;
     } finally {

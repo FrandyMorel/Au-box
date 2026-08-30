@@ -60,7 +60,7 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen p-6">
+      <main className="min-h-screen p-6" style={{ backgroundColor: "#E9DBD7" }}>
         <div className="mx-auto max-w-3xl">
           <div className="flex min-h-[300px] items-center justify-center">
             <p className="text-sm text-gray-500">
@@ -74,7 +74,7 @@ export default function ProfilePage() {
 
   if (!user) {
     return (
-      <main className="min-h-screen p-6">
+      <main className="min-h-screen p-6" style={{ backgroundColor: "#E9DBD7" }}>
         <div className="mx-auto max-w-3xl">
           <div className="rounded-xl border border-red-200 bg-red-50 p-6">
             <h1 className="text-lg font-semibold text-red-800">
@@ -92,13 +92,13 @@ export default function ProfilePage() {
   }
 
   return (
-    <main className="min-h-screen p-6">
+    <main className="min-h-screen p-6" style={{ backgroundColor: "#E9DBD7" }}>
       <div className="mx-auto max-w-3xl">
 
         {/* HEADER */}
 
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold" style={{ color: "#6B4071" }}>
             Mi perfil
           </h1>
 
@@ -134,9 +134,9 @@ export default function ProfilePage() {
 
         {/* SEGURIDAD */}
 
-        <section className="rounded-xl border bg-white p-6 shadow-sm">
+        <section className="rounded-xl border bg-transparent p-6 shadow-sm">
           <div className="mb-5">
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold" style={{ color: "#6B4071" }}>
               Seguridad
             </h2>
 
@@ -153,7 +153,7 @@ export default function ProfilePage() {
                 setSuccess("");
                 setError("");
               }}
-              className="rounded-lg bg-gray-900 px-5 py-3 text-sm text-white"
+              className="buttonPrimary px-5 py-3 text-sm font-medium"
             >
               Cambiar contraseña
             </button>

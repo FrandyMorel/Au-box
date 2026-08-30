@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import Swal from "sweetalert2";
 import {
   createIncident,
   updateIncident,
@@ -104,6 +105,15 @@ export default function IncidentForm({
           description: description.trim(),
         });
 
+        Swal.fire({
+          icon: "success",
+          title: "¡Actualizado!",
+          text: "La incidencia ha sido actualizada exitosamente",
+          confirmButtonColor: "#6B4071",
+          timer: 2000,
+          timerProgressBar: true,
+        });
+
         if (priority !== initialData.priority) {
           // La prioridad se actualiza por su endpoint independiente.
           // Se hará desde la página de edición.
@@ -115,15 +125,32 @@ export default function IncidentForm({
           automationId: parsedAutomationId,
           userId,
         });
+
+        Swal.fire({
+          icon: "success",
+          title: "¡Creada!",
+          text: "La incidencia ha sido creada exitosamente",
+          confirmButtonColor: "#6B4071",
+          timer: 2000,
+          timerProgressBar: true,
+        });
       }
 
       onSuccess?.(response);
     } catch (err) {
-      setError(
+      const message =
         err instanceof Error
           ? err.message
-          : "Ocurrió un error.",
-      );
+          : "Ocurrió un error.";
+
+      setError(message);
+
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: message,
+        confirmButtonColor: "#6B4071",
+      });
     } finally {
       setLoading(false);
     }
@@ -135,7 +162,7 @@ export default function IncidentForm({
       className="space-y-6"
     >
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
         </div>
       )}
@@ -146,6 +173,7 @@ export default function IncidentForm({
           className="mb-2 block text-sm font-medium"
         >
           Nombre
+          <span className="text-red-600 ml-1">*</span>
         </label>
 
         <input
@@ -157,8 +185,9 @@ export default function IncidentForm({
           }
           maxLength={255}
           placeholder="Base de datos sin respuesta"
-          className="w-full rounded-lg border px-4 py-2"
           disabled={loading}
+          required
+          className="w-full rounded-lg bg-[#E9DBD7] border border-[#14243C] px-4 py-3 outline-none focus:ring-2 focus:ring-[#6B4071] focus:border-transparent disabled:opacity-50"
         />
       </div>
 
@@ -168,6 +197,7 @@ export default function IncidentForm({
           className="mb-2 block text-sm font-medium"
         >
           Descripción
+          <span className="text-red-600 ml-1">*</span>
         </label>
 
         <textarea
@@ -179,8 +209,9 @@ export default function IncidentForm({
           maxLength={2000}
           rows={5}
           placeholder="La base de datos no está respondiendo..."
-          className="w-full resize-none rounded-lg border px-4 py-2"
           disabled={loading}
+          required
+          className="w-full resize-none rounded-lg bg-[#E9DBD7] border border-[#14243C] px-4 py-3 outline-none focus:ring-2 focus:ring-[#6B4071] focus:border-transparent disabled:opacity-50"
         />
       </div>
 
@@ -191,6 +222,7 @@ export default function IncidentForm({
             className="mb-2 block text-sm font-medium"
           >
             ID de automatización
+            <span className="text-red-600 ml-1">*</span>
           </label>
 
           <input
@@ -202,8 +234,9 @@ export default function IncidentForm({
               setAutomationId(event.target.value)
             }
             placeholder="1"
-            className="w-full rounded-lg border px-4 py-2"
             disabled={loading}
+            required
+            className="w-full rounded-lg bg-[#E9DBD7] border border-[#14243C] px-4 py-3 outline-none focus:ring-2 focus:ring-[#6B4071] focus:border-transparent disabled:opacity-50"
           />
 
           <p className="mt-1 text-xs text-gray-500">
@@ -228,8 +261,8 @@ export default function IncidentForm({
               event.target.value as IncidentPriority,
             )
           }
-          className="w-full rounded-lg border px-4 py-2"
           disabled={loading}
+          className="w-full rounded-lg bg-[#E9DBD7] border border-[#14243C] px-4 py-3 outline-none focus:ring-2 focus:ring-[#6B4071] focus:border-transparent disabled:opacity-50"
         >
           {priorities.map((item) => (
             <option key={item} value={item}>
@@ -240,7 +273,7 @@ export default function IncidentForm({
       </div>
 
       {!isEditing && (
-        <div className="rounded-lg bg-gray-50 p-4 text-sm text-gray-600">
+        <div className="rounded-lg p-4 text-sm text-gray-600" style={{ backgroundColor: "#f5f0ed" }}>
           <p>
             <strong>Estado inicial:</strong> Abierta
           </p>
@@ -260,7 +293,7 @@ export default function IncidentForm({
       <button
         type="submit"
         disabled={loading}
-        className="rounded-lg bg-black px-5 py-2.5 text-white disabled:opacity-50"
+        className="buttonPrimary w-full py-3 font-medium"
       >
         {loading
           ? "Guardando..."

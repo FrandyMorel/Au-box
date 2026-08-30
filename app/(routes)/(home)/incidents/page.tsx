@@ -52,6 +52,22 @@ const PRIORITY_LABELS: Record<IncidentPriority, string> = {
   CRITICAL: "Crítica",
 };
 
+// Estilos de colores para estados
+const STATUS_STYLES: Record<IncidentStatus, string> = {
+  OPEN: "bg-red-100 text-red-700",
+  IN_PROGRESS: "bg-yellow-100 text-yellow-700",
+  RESOLVED: "bg-green-100 text-green-700",
+  CLOSED: "bg-gray-100 text-gray-700",
+};
+
+// Estilos de colores para prioridades
+const PRIORITY_STYLES: Record<IncidentPriority, string> = {
+  LOW: "bg-blue-100 text-blue-700",
+  MEDIUM: "bg-orange-100 text-orange-700",
+  HIGH: "bg-red-100 text-red-700",
+  CRITICAL: "bg-purple-100 text-purple-700",
+};
+
 export default function IncidentsPage() {
   const router = useRouter();
 
@@ -147,7 +163,7 @@ export default function IncidentsPage() {
     <main className="p-6">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">
+          <h1 className="text-2xl font-bold" style={{ color: "#6B4071" }}>
             Incidencias
           </h1>
 
@@ -159,9 +175,9 @@ export default function IncidentsPage() {
         <button
           type="button"
           onClick={() => router.push("/incidents/new")}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+          className="buttonPrimary px-5 py-3 text-sm font-medium"
         >
-          + Nueva incidencia
+         Nueva incidencia
         </button>
       </div>
 
@@ -229,8 +245,12 @@ export default function IncidentsPage() {
 
           <div className="overflow-x-auto rounded-lg border">
             <table className="w-full">
-              <thead className="bg-gray-100">
+              <thead className="bg-transparent">
                 <tr>
+                  <th className="px-4 py-3 text-left">
+                    ID
+                  </th>
+
                   <th className="px-4 py-3 text-left">
                     Nombre
                   </th>
@@ -267,6 +287,10 @@ export default function IncidentsPage() {
                     key={incident.id}
                     className="border-t"
                   >
+                    <td className="px-4 py-3 font-medium whitespace-nowrap">
+                      #{incident.id}
+                    </td>
+
                     <td className="px-4 py-3 font-medium">
                       {incident.name}
                     </td>
@@ -281,16 +305,24 @@ export default function IncidentsPage() {
                       {formatDate(incident.reportedAt)}
                     </td>
 
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 whitespace-nowrap">
                       #{incident.automationId}
                     </td>
 
                     <td className="px-4 py-3">
-                      {STATUS_LABELS[incident.status]}
+                      <span
+                        className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${STATUS_STYLES[incident.status]}`}
+                      >
+                        {STATUS_LABELS[incident.status]}
+                      </span>
                     </td>
 
                     <td className="px-4 py-3">
-                      {PRIORITY_LABELS[incident.priority]}
+                      <span
+                        className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${PRIORITY_STYLES[incident.priority]}`}
+                      >
+                        {PRIORITY_LABELS[incident.priority]}
+                      </span>
                     </td>
 
                     <td className="px-4 py-3">

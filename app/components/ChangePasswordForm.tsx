@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-
+import Swal from "sweetalert2";
 import { changePassword } from "@/app/lib/api/users";
 
 interface ChangePasswordFormProps {
@@ -18,33 +18,42 @@ export default function ChangePasswordForm({
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   async function handleSubmit(
     event: React.FormEvent<HTMLFormElement>,
   ) {
     event.preventDefault();
 
-    setError("");
-
     if (newPassword.length < 8) {
-      setError(
-        "La nueva contraseña debe tener al menos 8 caracteres",
-      );
+      Swal.fire({
+        icon: "error",
+        title: "Validación",
+        text: "La nueva contraseña debe tener al menos 8 caracteres",
+        confirmButtonColor: "#6B4071",
+      });
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError(
-        "La nueva contraseña y la confirmación no coinciden",
-      );
+      Swal.fire({
+        icon: "error",
+        title: "Validación",
+        text: "La nueva contraseña y la confirmación no coinciden",
+        confirmButtonColor: "#6B4071",
+      });
       return;
     }
 
     if (currentPassword === newPassword) {
-      setError(
-        "La nueva contraseña debe ser diferente a la actual",
-      );
+      Swal.fire({
+        icon: "error",
+        title: "Validación",
+        text: "La nueva contraseña debe ser diferente a la actual",
+        confirmButtonColor: "#6B4071",
+      });
       return;
     }
 
@@ -61,13 +70,28 @@ export default function ChangePasswordForm({
       setNewPassword("");
       setConfirmPassword("");
 
-      onSuccess?.(response.message);
+      Swal.fire({
+        icon: "success",
+        title: "¡Éxito!",
+        text: response.message || "Contraseña actualizada correctamente",
+        confirmButtonColor: "#6B4071",
+        timer: 2000,
+        timerProgressBar: true,
+      });
+
+      onSuccess?.(response.message || "Contraseña actualizada correctamente");
     } catch (err) {
-      setError(
+      const errorMessage =
         err instanceof Error
           ? err.message
-          : "No se pudo cambiar la contraseña",
-      );
+          : "No se pudo cambiar la contraseña";
+
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: errorMessage,
+        confirmButtonColor: "#6B4071",
+      });
     } finally {
       setLoading(false);
     }
@@ -76,7 +100,7 @@ export default function ChangePasswordForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-5"
+      className="space-y-5 max-h-[calc(100vh-400px)] overflow-y-auto pr-2"
     >
       {/* CONTRASEÑA ACTUAL */}
 
@@ -86,19 +110,102 @@ export default function ChangePasswordForm({
           className="mb-2 block text-sm font-medium"
         >
           Contraseña actual
+          <span className="text-red-600 ml-1">*</span>
         </label>
 
-        <input
-          id="currentPassword"
-          type="password"
-          value={currentPassword}
-          onChange={(event) =>
-            setCurrentPassword(event.target.value)
-          }
-          disabled={loading}
-          required
-          className="w-full rounded-lg border px-4 py-3"
-        />
+        <div className="relative">
+          <input
+            id="currentPassword"
+            type={showCurrentPassword ? "text" : "password"}
+            value={currentPassword}
+            onChange={(event) =>
+              setCurrentPassword(event.target.value)
+            }
+            disabled={loading}
+            required
+            placeholder="••••••••"
+            className="
+              w-full
+              rounded-lg
+              bg-[#E9DBD7]
+              border border-[#14243C]
+              px-4
+              py-3
+              pr-10
+              outline-none
+              focus:ring-2
+              focus:ring-[#6B4071]
+              focus:border-transparent
+              disabled:opacity-50
+              transition
+            "
+          />
+          <button
+            type="button"
+            onClick={() =>
+              setShowCurrentPassword(!showCurrentPassword)
+            }
+            disabled={loading}
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#6b4071] hover:opacity-70 transition disabled:opacity-50"
+          >
+            {showCurrentPassword ? (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="1em"
+                height="1em"
+                viewBox="0 0 16 16"
+                className="w-5 h-5"
+              >
+                <path
+                  d="M0 0h16v16H0z"
+                  fill="none"
+                />
+                <g
+                  fill="none"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.5"
+                >
+                  <path d="m1.75 8s2-4.25 6.25-4.25 6.25 4.25 6.25 4.25-2 4.25-6.25 4.25-6.25-4.25-6.25-4.25z" />
+                  <circle
+                    cx="8"
+                    cy="8"
+                    r="1.25"
+                    fill="currentColor"
+                  />
+                </g>
+              </svg>
+            ) : (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="1em"
+                height="1em"
+                viewBox="0 0 16 16"
+                className="w-5 h-5"
+              >
+                <path
+                  d="M0 0h16v16H0z"
+                  fill="none"
+                />
+                <g
+                  fill="none"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.5"
+                >
+                  <path d="m8.75 3.75c3.5.5 5.5 4.25 5.5 4.25s-.5 1.25-1.5 2.25m-2.5 1.5c-6 2-8.5-3.75-8.5-3.75s.5-1.75 3-3.25" />
+                  <path
+                    fill="currentColor"
+                    d="m8.625 9.08253a1.25 1.25 0 0 1 -1.64894 -.36556 1.25 1.25 0 0 1 .22046 -1.67453l.80348.95756z"
+                  />
+                  <path d="m3.75 1.75 8.5 12.5" />
+                </g>
+              </svg>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* NUEVA CONTRASEÑA */}
@@ -109,22 +216,105 @@ export default function ChangePasswordForm({
           className="mb-2 block text-sm font-medium"
         >
           Nueva contraseña
+          <span className="text-red-600 ml-1">*</span>
         </label>
 
-        <input
-          id="newPassword"
-          type="password"
-          value={newPassword}
-          onChange={(event) =>
-            setNewPassword(event.target.value)
-          }
-          minLength={8}
-          disabled={loading}
-          required
-          className="w-full rounded-lg border px-4 py-3"
-        />
+        <div className="relative">
+          <input
+            id="newPassword"
+            type={showNewPassword ? "text" : "password"}
+            value={newPassword}
+            onChange={(event) =>
+              setNewPassword(event.target.value)
+            }
+            minLength={8}
+            disabled={loading}
+            required
+            placeholder="••••••••"
+            className="
+              w-full
+              rounded-lg
+              bg-[#E9DBD7]
+              border border-[#14243C]
+              px-4
+              py-3
+              pr-10
+              outline-none
+              focus:ring-2
+              focus:ring-[#6B4071]
+              focus:border-transparent
+              disabled:opacity-50
+              transition
+            "
+          />
+          <button
+            type="button"
+            onClick={() =>
+              setShowNewPassword(!showNewPassword)
+            }
+            disabled={loading}
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#6b4071] hover:opacity-70 transition disabled:opacity-50"
+          >
+            {showNewPassword ? (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="1em"
+                height="1em"
+                viewBox="0 0 16 16"
+                className="w-5 h-5"
+              >
+                <path
+                  d="M0 0h16v16H0z"
+                  fill="none"
+                />
+                <g
+                  fill="none"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.5"
+                >
+                  <path d="m1.75 8s2-4.25 6.25-4.25 6.25 4.25 6.25 4.25-2 4.25-6.25 4.25-6.25-4.25-6.25-4.25z" />
+                  <circle
+                    cx="8"
+                    cy="8"
+                    r="1.25"
+                    fill="currentColor"
+                  />
+                </g>
+              </svg>
+            ) : (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="1em"
+                height="1em"
+                viewBox="0 0 16 16"
+                className="w-5 h-5"
+              >
+                <path
+                  d="M0 0h16v16H0z"
+                  fill="none"
+                />
+                <g
+                  fill="none"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.5"
+                >
+                  <path d="m8.75 3.75c3.5.5 5.5 4.25 5.5 4.25s-.5 1.25-1.5 2.25m-2.5 1.5c-6 2-8.5-3.75-8.5-3.75s.5-1.75 3-3.25" />
+                  <path
+                    fill="currentColor"
+                    d="m8.625 9.08253a1.25 1.25 0 0 1 -1.64894 -.36556 1.25 1.25 0 0 1 .22046 -1.67453l.80348.95756z"
+                  />
+                  <path d="m3.75 1.75 8.5 12.5" />
+                </g>
+              </svg>
+            )}
+          </button>
+        </div>
 
-        <p className="mt-1 text-xs text-gray-500">
+        <p className="mt-1 text-xs text-gray-600">
           Mínimo 8 caracteres.
         </p>
       </div>
@@ -137,41 +327,114 @@ export default function ChangePasswordForm({
           className="mb-2 block text-sm font-medium"
         >
           Confirmar nueva contraseña
+          <span className="text-red-600 ml-1">*</span>
         </label>
 
-        <input
-          id="confirmPassword"
-          type="password"
-          value={confirmPassword}
-          onChange={(event) =>
-            setConfirmPassword(event.target.value)
-          }
-          minLength={8}
-          disabled={loading}
-          required
-          className="w-full rounded-lg border px-4 py-3"
-        />
-      </div>
-
-      {/* ERROR */}
-
-      {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
+        <div className="relative">
+          <input
+            id="confirmPassword"
+            type={showConfirmPassword ? "text" : "password"}
+            value={confirmPassword}
+            onChange={(event) =>
+              setConfirmPassword(event.target.value)
+            }
+            minLength={8}
+            disabled={loading}
+            required
+            placeholder="••••••••"
+            className="
+              w-full
+              rounded-lg
+              bg-[#E9DBD7]
+              border border-[#14243C]
+              px-4
+              py-3
+              pr-10
+              outline-none
+              focus:ring-2
+              focus:ring-[#6B4071]
+              focus:border-transparent
+              disabled:opacity-50
+              transition
+            "
+          />
+          <button
+            type="button"
+            onClick={() =>
+              setShowConfirmPassword(!showConfirmPassword)
+            }
+            disabled={loading}
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#6b4071] hover:opacity-70 transition disabled:opacity-50"
+          >
+            {showConfirmPassword ? (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="1em"
+                height="1em"
+                viewBox="0 0 16 16"
+                className="w-5 h-5"
+              >
+                <path
+                  d="M0 0h16v16H0z"
+                  fill="none"
+                />
+                <g
+                  fill="none"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.5"
+                >
+                  <path d="m1.75 8s2-4.25 6.25-4.25 6.25 4.25 6.25 4.25-2 4.25-6.25 4.25-6.25-4.25-6.25-4.25z" />
+                  <circle
+                    cx="8"
+                    cy="8"
+                    r="1.25"
+                    fill="currentColor"
+                  />
+                </g>
+              </svg>
+            ) : (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="1em"
+                height="1em"
+                viewBox="0 0 16 16"
+                className="w-5 h-5"
+              >
+                <path
+                  d="M0 0h16v16H0z"
+                  fill="none"
+                />
+                <g
+                  fill="none"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.5"
+                >
+                  <path d="m8.75 3.75c3.5.5 5.5 4.25 5.5 4.25s-.5 1.25-1.5 2.25m-2.5 1.5c-6 2-8.5-3.75-8.5-3.75s.5-1.75 3-3.25" />
+                  <path
+                    fill="currentColor"
+                    d="m8.625 9.08253a1.25 1.25 0 0 1 -1.64894 -.36556 1.25 1.25 0 0 1 .22046 -1.67453l.80348.95756z"
+                  />
+                  <path d="m3.75 1.75 8.5 12.5" />
+                </g>
+              </svg>
+            )}
+          </button>
         </div>
-      )}
+      </div>
 
       {/* BOTONES */}
 
-      <div className="flex gap-3">
+      <div className="flex gap-3 pt-3">
         <button
           type="submit"
           disabled={loading}
-          className="rounded-lg bg-blue-600 px-5 py-3 text-sm text-white disabled:opacity-50"
+          className="buttonPrimary px-5 py-3 text-sm font-medium disabled:opacity-50"
         >
-          {loading
-            ? "Cambiando..."
-            : "Cambiar contraseña"}
+          {loading ? "Cambiando..." : "Cambiar contraseña"}
         </button>
 
         {onCancel && (
@@ -179,7 +442,7 @@ export default function ChangePasswordForm({
             type="button"
             onClick={onCancel}
             disabled={loading}
-            className="rounded-lg border px-5 py-3 text-sm"
+            className="buttonSecondary px-5 py-3 text-sm font-medium disabled:opacity-50"
           >
             Cancelar
           </button>

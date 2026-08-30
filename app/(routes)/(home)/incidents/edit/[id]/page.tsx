@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Swal from "sweetalert2";
 import { apiClient } from "@/app/lib/api/client";
 
 interface Incident {
@@ -183,14 +184,31 @@ export default function EditIncidentPage() {
         );
       }
 
+      Swal.fire({
+        icon: "success",
+        title: "¡Actualizado!",
+        text: "La incidencia ha sido actualizada exitosamente",
+        confirmButtonColor: "#6B4071",
+        timer: 2000,
+        timerProgressBar: true,
+      });
+
       router.push("/incidents");
       router.refresh();
     } catch (err) {
-      setError(
+      const message =
         err instanceof Error
           ? err.message
-          : "No se pudo actualizar la incidencia.",
-      );
+          : "No se pudo actualizar la incidencia.";
+
+      setError(message);
+
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: message,
+        confirmButtonColor: "#6B4071",
+      });
     } finally {
       setSaving(false);
     }
@@ -201,18 +219,26 @@ export default function EditIncidentPage() {
    */
   if (!validId) {
     return (
-      <main className="p-6">
-        <div className="rounded-lg bg-red-100 p-4 text-red-700">
-          ID de incidencia inválido.
-        </div>
+      <main className="min-h-screen p-6" style={{ backgroundColor: "#E9DBD7" }}>
+        <div className="mx-auto max-w-4xl">
+          <div className="rounded-xl border border-red-200 bg-red-50 p-6">
+            <h1 className="text-lg font-semibold text-red-800">
+              Incidencia no válida
+            </h1>
 
-        <button
-          type="button"
-          onClick={() => router.push("/incidents")}
-          className="mt-4 rounded-lg border px-4 py-2"
-        >
-          Volver
-        </button>
+            <p className="mt-2 text-sm text-red-700">
+              El ID proporcionado no es válido.
+            </p>
+
+            <button
+              type="button"
+              onClick={() => router.push("/incidents")}
+              className="buttonPrimary mt-4 px-4 py-2 text-sm"
+            >
+              Volver
+            </button>
+          </div>
+        </div>
       </main>
     );
   }
@@ -222,186 +248,241 @@ export default function EditIncidentPage() {
    */
   if (loading) {
     return (
-      <main className="p-6">
-        <p>Cargando incidencia...</p>
+      <main className="min-h-screen p-6" style={{ backgroundColor: "#E9DBD7" }}>
+        <div className="mx-auto max-w-4xl">
+          <div className="flex min-h-[300px] items-center justify-center">
+            <div className="text-center">
+              <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-[#6B4071]" />
+              <p className="text-sm text-gray-500">
+                Cargando incidencia...
+              </p>
+            </div>
+          </div>
+        </div>
       </main>
     );
   }
 
   return (
-    <main className="mx-auto max-w-3xl p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">
-          Editar incidencia
-        </h1>
-
-        <p className="text-sm text-gray-500">
-          Incidencia #{id}
-        </p>
-      </div>
-
-      {error && (
-        <div className="mb-6 rounded-lg bg-red-100 p-4 text-red-700">
-          {error}
-        </div>
-      )}
-
-      <form
-        onSubmit={handleSubmit}
-        className="space-y-6 rounded-xl border p-6"
-      >
-        {/* NOMBRE */}
-
-        <div>
-          <label
-            htmlFor="name"
-            className="mb-2 block font-medium"
-          >
-            Nombre
-          </label>
-
-          <input
-            id="name"
-            type="text"
-            value={name}
-            onChange={(event) =>
-              setName(event.target.value)
-            }
-            minLength={3}
-            maxLength={255}
-            required
-            className="w-full rounded-lg border px-3 py-2"
-          />
-        </div>
-
-        {/* DESCRIPCIÓN */}
-
-        <div>
-          <label
-            htmlFor="description"
-            className="mb-2 block font-medium"
-          >
-            Descripción
-          </label>
-
-          <textarea
-            id="description"
-            value={description}
-            onChange={(event) =>
-              setDescription(event.target.value)
-            }
-            minLength={10}
-            maxLength={2000}
-            rows={6}
-            required
-            className="w-full rounded-lg border px-3 py-2"
-          />
-        </div>
-
-        {/* ESTADO */}
-
-        <div>
-          <label
-            htmlFor="status"
-            className="mb-2 block font-medium"
-          >
-            Estado
-          </label>
-
-          <select
-            id="status"
-            value={status}
-            onChange={(event) =>
-              setStatus(
-                event.target.value as IncidentStatus,
-              )
-            }
-            className="w-full rounded-lg border px-3 py-2"
-          >
-            {Object.entries(STATUS_LABELS).map(
-              ([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ),
-            )}
-          </select>
-        </div>
-
-        {/* PRIORIDAD */}
-
-        <div>
-          <label
-            htmlFor="priority"
-            className="mb-2 block font-medium"
-          >
-            Prioridad
-          </label>
-
-          <select
-            id="priority"
-            value={priority}
-            onChange={(event) =>
-              setPriority(
-                event.target.value as IncidentPriority,
-              )
-            }
-            className="w-full rounded-lg border px-3 py-2"
-          >
-            {Object.entries(PRIORITY_LABELS).map(
-              ([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ),
-            )}
-          </select>
-        </div>
-
-        {/* INFORMACIÓN */}
-
-        {incident && (
-          <div className="rounded-lg bg-gray-50 p-4 text-sm">
-            <p>
-              <strong>Automatización:</strong>{" "}
-              #{incident.automationId}
-            </p>
-
-            <p>
-              <strong>Usuario:</strong> #{incident.userId}
-            </p>
-
-            <p>
-              <strong>Fecha de reporte:</strong>{" "}
-              {new Date(
-                incident.reportedAt,
-              ).toLocaleString("es-DO")}
-            </p>
-          </div>
-        )}
-
-        {/* BOTONES */}
-
-        <div className="flex justify-end gap-3">
+    <main className="min-h-screen p-6" style={{ backgroundColor: "#E9DBD7" }}>
+      <div className="mx-auto max-w-4xl">
+        {/* HEADER */}
+        <div className="mb-6">
           <button
             type="button"
             onClick={() => router.push("/incidents")}
-            className="rounded-lg border px-4 py-2"
+            className="mb-4 inline-flex items-center justify-center w-10 h-10 rounded-lg hover:bg-gray-300 transition"
+            title="Volver a incidencias"
           >
-            Cancelar
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="1em"
+              height="1em"
+              viewBox="0 0 512 512"
+              className="w-6 h-6"
+            >
+              <path d="M0 0h512v512H0z" fill="none" />
+              <path
+                fill="#14243c"
+                d="M48 256c0 114.87 93.13 208 208 208s208-93.13 208-208S370.87 48 256 48S48 141.13 48 256m212.65-91.36a16 16 0 0 1 .09 22.63L208.42 240H342a16 16 0 0 1 0 32H208.42l52.32 52.73A16 16 0 1 1 238 347.27l-79.39-80a16 16 0 0 1 0-22.54l79.39-80a16 16 0 0 1 22.65-.09"
+              />
+            </svg>
           </button>
 
-          <button
-            type="submit"
-            disabled={saving}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
-          >
-            {saving
-              ? "Guardando..."
-              : "Guardar cambios"}
-          </button>
+          <h1 className="text-2xl font-bold" style={{ color: "#6B4071" }}>
+            Editar incidencia
+          </h1>
+
+          <p className="mt-1 text-sm text-gray-600">
+            Incidencia #{id}
+          </p>
         </div>
-      </form>
+
+        {error && (
+          <div className="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {error}
+          </div>
+        )}
+
+        {/* INFORMACIÓN ACTUAL */}
+        {incident && (
+          <div className="mb-5 rounded-xl border bg-white p-5">
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div>
+                <p className="text-xs font-medium text-gray-500">
+                  Automatización
+                </p>
+
+                <p className="mt-1 text-sm font-semibold text-gray-900">
+                  #{incident.automationId}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-xs font-medium text-gray-500">
+                  Usuario
+                </p>
+
+                <p className="mt-1 text-sm font-semibold text-gray-900">
+                  #{incident.userId}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-xs font-medium text-gray-500">
+                  Fecha de reporte
+                </p>
+
+                <p className="mt-1 text-sm font-semibold text-gray-900">
+                  {new Date(incident.reportedAt).toLocaleString(
+                    "es-DO",
+                  )}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* FORMULARIO */}
+        <section className="rounded-xl border bg-white p-6 shadow-sm overflow-y-auto max-h-[calc(100vh-400px)]">
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-6"
+          >
+            {/* NOMBRE */}
+            <div>
+              <label
+                htmlFor="name"
+                className="mb-2 block text-sm font-medium"
+              >
+                Nombre
+                <span className="text-red-600 ml-1">*</span>
+              </label>
+
+              <input
+                id="name"
+                type="text"
+                value={name}
+                onChange={(event) =>
+                  setName(event.target.value)
+                }
+                minLength={3}
+                maxLength={255}
+                disabled={saving}
+                required
+                className="w-full rounded-lg bg-[#E9DBD7] border border-[#14243C] px-4 py-3 outline-none focus:ring-2 focus:ring-[#6B4071] focus:border-transparent disabled:opacity-50"
+              />
+            </div>
+
+            {/* DESCRIPCIÓN */}
+            <div>
+              <label
+                htmlFor="description"
+                className="mb-2 block text-sm font-medium"
+              >
+                Descripción
+                <span className="text-red-600 ml-1">*</span>
+              </label>
+
+              <textarea
+                id="description"
+                value={description}
+                onChange={(event) =>
+                  setDescription(event.target.value)
+                }
+                minLength={10}
+                maxLength={2000}
+                rows={6}
+                disabled={saving}
+                required
+                className="w-full resize-none rounded-lg bg-[#E9DBD7] border border-[#14243C] px-4 py-3 outline-none focus:ring-2 focus:ring-[#6B4071] focus:border-transparent disabled:opacity-50"
+              />
+            </div>
+
+            {/* ESTADO */}
+            <div>
+              <label
+                htmlFor="status"
+                className="mb-2 block text-sm font-medium"
+              >
+                Estado
+              </label>
+
+              <select
+                id="status"
+                value={status}
+                onChange={(event) =>
+                  setStatus(
+                    event.target.value as IncidentStatus,
+                  )
+                }
+                disabled={saving}
+                className="w-full rounded-lg bg-[#E9DBD7] border border-[#14243C] px-4 py-3 outline-none focus:ring-2 focus:ring-[#6B4071] focus:border-transparent disabled:opacity-50"
+              >
+                {Object.entries(STATUS_LABELS).map(
+                  ([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ),
+                )}
+              </select>
+            </div>
+
+            {/* PRIORIDAD */}
+            <div>
+              <label
+                htmlFor="priority"
+                className="mb-2 block text-sm font-medium"
+              >
+                Prioridad
+              </label>
+
+              <select
+                id="priority"
+                value={priority}
+                onChange={(event) =>
+                  setPriority(
+                    event.target.value as IncidentPriority,
+                  )
+                }
+                disabled={saving}
+                className="w-full rounded-lg bg-[#E9DBD7] border border-[#14243C] px-4 py-3 outline-none focus:ring-2 focus:ring-[#6B4071] focus:border-transparent disabled:opacity-50"
+              >
+                {Object.entries(PRIORITY_LABELS).map(
+                  ([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ),
+                )}
+              </select>
+            </div>
+
+            {/* BOTONES */}
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => router.push("/incidents")}
+                disabled={saving}
+                className="buttonSecondary px-5 py-3 font-medium"
+              >
+                Cancelar
+              </button>
+
+              <button
+                type="submit"
+                disabled={saving}
+                className="buttonPrimary px-5 py-3 font-medium"
+              >
+                {saving
+                  ? "Guardando..."
+                  : "Guardar cambios"}
+              </button>
+            </div>
+          </form>
+        </section>
+      </div>
     </main>
   );
 }
