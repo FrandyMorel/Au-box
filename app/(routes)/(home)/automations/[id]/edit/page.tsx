@@ -103,7 +103,7 @@ export default function EditAutomationPage() {
    */
   if (!Number.isInteger(id) || id <= 0) {
     return (
-      <main className="min-h-screen p-6">
+      <main className="min-h-screen p-6" style={{ backgroundColor: "#E9DBD7" }}>
         <div className="mx-auto max-w-4xl">
           <div className="rounded-xl border border-red-200 bg-red-50 p-6">
             <h1 className="text-lg font-semibold text-red-800">
@@ -117,7 +117,7 @@ export default function EditAutomationPage() {
             <button
               type="button"
               onClick={handleCancel}
-              className="mt-4 rounded-lg bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700"
+              className="buttonPrimary mt-4 px-4 py-2 text-sm"
             >
               Volver
             </button>
@@ -132,12 +132,15 @@ export default function EditAutomationPage() {
    */
   if (loading) {
     return (
-      <main className="min-h-screen p-6">
+      <main className="min-h-screen p-6" style={{ backgroundColor: "#E9DBD7" }}>
         <div className="mx-auto max-w-4xl">
           <div className="flex min-h-[300px] items-center justify-center">
-            <p className="text-sm text-gray-500">
-              Cargando automatización...
-            </p>
+            <div className="text-center">
+              <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-[#6B4071]" />
+              <p className="text-sm text-gray-500">
+                Cargando automatización...
+              </p>
+            </div>
           </div>
         </div>
       </main>
@@ -149,7 +152,7 @@ export default function EditAutomationPage() {
    */
   if (!automation) {
     return (
-      <main className="min-h-screen p-6">
+      <main className="min-h-screen p-6" style={{ backgroundColor: "#E9DBD7" }}>
         <div className="mx-auto max-w-4xl">
           <div className="rounded-xl border border-red-200 bg-red-50 p-6">
             <h1 className="text-lg font-semibold text-red-800">
@@ -164,7 +167,7 @@ export default function EditAutomationPage() {
             <button
               type="button"
               onClick={handleCancel}
-              className="mt-4 rounded-lg bg-gray-900 px-4 py-2 text-sm text-white hover:bg-gray-800"
+              className="buttonPrimary mt-4 px-4 py-2 text-sm"
             >
               Volver a automatizaciones
             </button>
@@ -175,23 +178,36 @@ export default function EditAutomationPage() {
   }
 
   return (
-    <main className="min-h-screen p-6">
+    <main className="min-h-screen p-6" style={{ backgroundColor: "#E9DBD7" }}>
       <div className="mx-auto max-w-4xl">
         {/* HEADER */}
         <div className="mb-6">
           <button
             type="button"
             onClick={handleCancel}
-            className="mb-4 text-sm text-gray-500 hover:text-gray-900"
+            className="mb-4 inline-flex items-center justify-center w-10 h-10 rounded-lg hover:bg-gray-300 transition"
+            title="Volver a automatizaciones"
           >
-            ← Volver a automatizaciones
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="1em"
+              height="1em"
+              viewBox="0 0 512 512"
+              className="w-6 h-6"
+            >
+              <path d="M0 0h512v512H0z" fill="none" />
+              <path
+                fill="#14243c"
+                d="M48 256c0 114.87 93.13 208 208 208s208-93.13 208-208S370.87 48 256 48S48 141.13 48 256m212.65-91.36a16 16 0 0 1 .09 22.63L208.42 240H342a16 16 0 0 1 0 32H208.42l52.32 52.73A16 16 0 1 1 238 347.27l-79.39-80a16 16 0 0 1 0-22.54l79.39-80a16 16 0 0 1 22.65-.09"
+              />
+            </svg>
           </button>
 
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold" style={{ color: "#6B4071" }}>
             Editar automatización
           </h1>
 
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-gray-600">
             Modifica la información de la automatización.
           </p>
         </div>
@@ -204,7 +220,7 @@ export default function EditAutomationPage() {
         )}
 
         {/* INFORMACIÓN ACTUAL */}
-        <div className="mb-5 rounded-xl border bg-gray-50 p-5">
+        <div className="mb-5 rounded-xl border bg-transparent p-5">
           <div className="grid gap-4 sm:grid-cols-3">
             <div>
               <p className="text-xs font-medium text-gray-500">
@@ -239,7 +255,7 @@ export default function EditAutomationPage() {
         </div>
 
         {/* FORMULARIO */}
-        <section className="rounded-xl border bg-white p-6 shadow-sm">
+        <section className="rounded-xl border bg-transparent p-6 shadow-sm overflow-y-auto max-h-[calc(100vh-400px)]">
           <AutomationForm
             key={automation.id}
             initialData={{

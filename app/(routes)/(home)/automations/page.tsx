@@ -358,7 +358,7 @@ export default function AutomationsPage() {
   // ============================================================
 
   return (
-    <main className="min-h-screen bg-gray-50 p-6">
+    <main className="min-h-screen p-6" style={{ backgroundColor: "#E9DBD7" }}>
       <div className="mx-auto max-w-7xl">
 
         {/* ======================================================
@@ -367,7 +367,7 @@ export default function AutomationsPage() {
 
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold" style={{ color: "#6B4071" }}>
               Automatizaciones
             </h1>
 
@@ -380,9 +380,9 @@ export default function AutomationsPage() {
           <button
             type="button"
             onClick={handleCreate}
-            className="rounded-lg bg-blue-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-blue-700"
+            className="buttonPrimary px-5 py-3 text-sm font-medium"
           >
-            + Nueva automatización
+            Nueva automatización
           </button>
         </div>
 
@@ -408,7 +408,7 @@ export default function AutomationsPage() {
             FILTROS
         ====================================================== */}
 
-        <section className="mb-6 rounded-xl border bg-white p-5 shadow-sm">
+        <section className="mb-6 rounded-xl border p-5 shadow-sm" style={{ backgroundColor: "#E9DBD7" }}>
           <div className="grid gap-4 md:grid-cols-[1fr_220px_auto]">
 
             {/* BUSCAR */}
@@ -427,7 +427,7 @@ export default function AutomationsPage() {
                 value={search}
                 onChange={handleSearchChange}
                 placeholder="Buscar por nombre o descripción..."
-                className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                className="w-full rounded-lg bg-[#E9DBD7] border border-[#14243C] px-4 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-[#6B4071]"
               />
             </div>
 
@@ -445,7 +445,7 @@ export default function AutomationsPage() {
                 id="status"
                 value={statusFilter}
                 onChange={handleStatusFilterChange}
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                className="w-full rounded-lg bg-[#E9DBD7] border border-[#14243C] px-4 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-[#6B4071]"
               >
                 <option value="">
                   Todos los estados
@@ -468,7 +468,7 @@ export default function AutomationsPage() {
               <button
                 type="button"
                 onClick={handleClearFilters}
-                className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 md:w-auto"
+                className="buttonSecondary w-full px-4 py-2.5 text-sm font-medium md:w-auto"
               >
                 Limpiar filtros
               </button>
@@ -480,7 +480,7 @@ export default function AutomationsPage() {
             TABLA
         ====================================================== */}
 
-        <section className="overflow-hidden rounded-xl border bg-white shadow-sm">
+        <section className="overflow-hidden rounded-xl border shadow-sm" style={{ backgroundColor: "#E9DBD7" }}>
 
           {/* CONTADOR */}
 
@@ -502,7 +502,7 @@ export default function AutomationsPage() {
           {loading ? (
             <div className="flex min-h-[300px] items-center justify-center">
               <div className="text-center">
-                <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600" />
+                <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-[#6B4071]" />
 
                 <p className="text-sm text-gray-500">
                   Cargando automatizaciones...
@@ -534,7 +534,7 @@ export default function AutomationsPage() {
                 <button
                   type="button"
                   onClick={handleCreate}
-                  className="mt-5 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
+                  className="buttonPrimary mt-5 px-5 py-2.5 text-sm font-medium"
                 >
                   Crear automatización
                 </button>
@@ -549,8 +549,12 @@ export default function AutomationsPage() {
             <div className="overflow-x-auto">
               <table className="w-full min-w-[1000px] text-left text-sm">
 
-                <thead className="border-b bg-gray-50">
+                <thead className="border-b" style={{ backgroundColor: "#E9DBD7" }}>
                   <tr>
+                    <th className="px-5 py-4 font-semibold text-gray-600 w-16">
+                      ID
+                    </th>
+
                     <th className="px-5 py-4 font-semibold text-gray-600">
                       Automatización
                     </th>
@@ -582,8 +586,14 @@ export default function AutomationsPage() {
                   {automations.map((automation) => (
                     <tr
                       key={automation.id}
-                      className="transition hover:bg-gray-50"
+                      className="transition hover:opacity-70"
                     >
+
+                      {/* ID */}
+
+                      <td className="px-5 py-4 font-medium text-gray-900 whitespace-nowrap">
+                        #{automation.id}
+                      </td>
 
                       {/* AUTOMATIZACIÓN */}
 
@@ -655,7 +665,7 @@ export default function AutomationsPage() {
                                   .value as AutomationStatus,
                               )
                             }
-                            className="w-fit rounded-md border border-gray-300 bg-white px-2 py-1 text-xs outline-none focus:border-blue-500"
+                            className="w-fit rounded-md border border-gray-300 bg-white px-2 py-1 text-xs outline-none focus:border-[#6B4071]"
                           >
                             {STATUS_OPTIONS.map(
                               (option) => (

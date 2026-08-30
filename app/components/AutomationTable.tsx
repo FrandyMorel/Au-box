@@ -82,6 +82,7 @@ export default function AutomationTable({
       <table className="automation-table">
         <thead>
           <tr>
+            <th>ID</th>
             <th>Fecha de creación</th>
             <th>Automatización</th>
             <th>Solicitado por</th>
@@ -94,6 +95,10 @@ export default function AutomationTable({
         <tbody>
           {automations.map((automation) => (
             <tr key={automation.id}>
+              <td>
+                <strong>#{automation.id}</strong>
+              </td>
+
               <td>
                 {formatDate(automation.createdAt)}
               </td>

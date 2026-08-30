@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Swal from "sweetalert2";
 import type { AutomationStatus } from "@/app/lib/api/types";
 import {
   updateAutomationStatus,
@@ -30,12 +31,26 @@ export default function AutomationStatusSelect({
       return;
     }
 
-    const message =
-      newStatus === "IN_INCIDENT"
-        ? "La automatización pasará a estado EN INCIDENCIA. ¿Deseas continuar?"
-        : `¿Cambiar el estado a ${newStatus}?`;
+    const result = await Swal.fire({
+      icon: "question",
+      title: "Cambiar estado",
+      text:
+        newStatus === "IN_INCIDENT"
+          ? "La automatización pasará a estado EN INCIDENCIA. ¿Deseas continuar?"
+          : `¿Cambiar el estado a ${
+              newStatus === "ACTIVE"
+                ? "Activa"
+                : newStatus === "COMPLETED"
+                  ? "Completada"
+                  : "En incidencia"
+            }?`,
+      confirmButtonText: "Sí, cambiar",
+      cancelButtonText: "Cancelar",
+      showCancelButton: true,
+      confirmButtonColor: "#6B4071",
+    });
 
-    if (!window.confirm(message)) {
+    if (!result.isConfirmed) {
       event.target.value = status;
       return;
     }
@@ -51,11 +66,15 @@ export default function AutomationStatusSelect({
 
       onChanged(updated.status);
     } catch (error) {
-      alert(
-        error instanceof Error
-          ? error.message
-          : "No se pudo cambiar el estado",
-      );
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text:
+          error instanceof Error
+            ? error.message
+            : "No se pudo cambiar el estado",
+        confirmButtonColor: "#6B4071",
+      });
 
       event.target.value = status;
     } finally {
@@ -72,6 +91,8 @@ export default function AutomationStatusSelect({
         onChange={handleChange}
         disabled={loading}
         aria-label="Cambiar estado"
+        className="rounded-md border border-gray-300 px-2 py-1 text-xs outline-none focus:border-[#6B4071] disabled:opacity-50"
+        style={{ backgroundColor: "#E9DBD7" }}
       >
         <option value="ACTIVE">Activa</option>
         <option value="COMPLETED">Completada</option>

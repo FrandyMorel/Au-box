@@ -79,7 +79,7 @@ export default function AutomationForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6 bg-[#E9DBD7]">
       {/* Nombre */}
       <div>
         <label
@@ -87,6 +87,7 @@ export default function AutomationForm({
           className="mb-2 block text-sm font-medium"
         >
           Nombre de la automatización
+          <span className="text-red-600 ml-1">*</span>
         </label>
 
         <input
@@ -96,8 +97,9 @@ export default function AutomationForm({
           onChange={(event) => setName(event.target.value)}
           placeholder="Ej. Automatización de reportes"
           maxLength={100}
+          disabled={loading}
           required
-          className="w-full rounded-lg border px-4 py-3"
+          className="w-full rounded-lg bg-[#E9DBD7] border border-[#14243C] px-4 py-3 outline-none focus:ring-2 focus:ring-[#6B4071] focus:border-transparent disabled:opacity-50"
         />
       </div>
 
@@ -108,6 +110,7 @@ export default function AutomationForm({
           className="mb-2 block text-sm font-medium"
         >
           Descripción
+          <span className="text-red-600 ml-1">*</span>
         </label>
 
         <textarea
@@ -117,8 +120,9 @@ export default function AutomationForm({
           placeholder="Describe qué hace la automatización..."
           maxLength={500}
           rows={5}
+          disabled={loading}
           required
-          className="w-full resize-none rounded-lg border px-4 py-3"
+          className="w-full resize-none rounded-lg bg-[#E9DBD7] border border-[#14243C] px-4 py-3 outline-none focus:ring-2 focus:ring-[#6B4071] focus:border-transparent disabled:opacity-50"
         />
 
         <div className="mt-1 text-right text-xs text-gray-500">
@@ -133,6 +137,7 @@ export default function AutomationForm({
           className="mb-2 block text-sm font-medium"
         >
           Solicitado por
+          <span className="text-red-600 ml-1">*</span>
         </label>
 
         <input
@@ -142,8 +147,9 @@ export default function AutomationForm({
           onChange={(event) => setRequestedBy(event.target.value)}
           placeholder="Nombre del solicitante"
           maxLength={150}
+          disabled={loading}
           required
-          className="w-full rounded-lg border px-4 py-3"
+          className="w-full rounded-lg bg-[#E9DBD7] border border-[#14243C] px-4 py-3 outline-none focus:ring-2 focus:ring-[#6B4071] focus:border-transparent disabled:opacity-50"
         />
       </div>
 
@@ -161,7 +167,8 @@ export default function AutomationForm({
           type="datetime-local"
           value={implementDate}
           onChange={(event) => setImplementDate(event.target.value)}
-          className="w-full rounded-lg border px-4 py-3"
+          disabled={loading}
+          className="w-full rounded-lg bg-[#E9DBD7] border border-[#14243C] px-4 py-3 outline-none focus:ring-2 focus:ring-[#6B4071] focus:border-transparent disabled:opacity-50"
         />
 
         <p className="mt-1 text-xs text-gray-500">
@@ -183,7 +190,7 @@ export default function AutomationForm({
             type="button"
             onClick={onCancel}
             disabled={loading}
-            className="rounded-lg border px-5 py-3"
+            className="buttonSecondary px-5 py-3 font-medium"
           >
             Cancelar
           </button>
@@ -192,7 +199,7 @@ export default function AutomationForm({
         <button
           type="submit"
           disabled={loading}
-          className="rounded-lg bg-blue-600 px-5 py-3 text-white disabled:opacity-50"
+          className="buttonPrimary px-5 py-3 font-medium"
         >
           {loading
             ? "Guardando..."
