@@ -1,29 +1,23 @@
 @import "tailwindcss";
 
+@theme {
+  --color-secondary: #6B4071;
+  --color-darkbg: #14243C;
+}
+
 body {
   background: #E9DBD7;
   color: #171717;
 }
 
-@media (min-width: 768px)
-{
-  html, body {
-    overflow: hidden;
-  }
-}
 main {
-background: #E9DBD7;
-height: 100vh;
-height: 100dvh;
+  background: #E9DBD7;
+  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 @layer utilities {
-  .text-balance{
+  .text-balance {
     text-wrap: balance;
   }
-}
-
-@theme {
-  --color-secondary: #6B4071;
-  --color-darkbg: #14243C;
 }
