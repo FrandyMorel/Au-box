@@ -4,9 +4,15 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  await app.listen(3000);
+  // Habilitar CORS para el frontend en puerto 3000
+  app.enableCors({
+    origin: 'http://localhost:3000',
+    credentials: true,
+  });
 
-  console.log('✅ Servidor corriendo en http://localhost:3000');
+  await app.listen(3001);
+
+  console.log('✅ Servidor corriendo en http://localhost:3001');
 }
 
 bootstrap().catch((error) => {
