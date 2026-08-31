@@ -358,7 +358,7 @@ export default function AutomationsPage() {
   // ============================================================
 
   return (
-    <main className="min-h-screen p-6" style={{ backgroundColor: "#E9DBD7" }}>
+    <main className="min-h-screen p-5" style={{ backgroundColor: "#E9DBD7" }}>
       <div className="mx-auto max-w-7xl">
 
         {/* ======================================================
