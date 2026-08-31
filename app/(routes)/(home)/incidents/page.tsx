@@ -98,7 +98,7 @@ export default function IncidentsPage() {
         const params = new URLSearchParams();
 
         params.set("page", String(page));
-        params.set("pageSize", "10");
+        params.set("pageSize", "4");
 
         if (statusFilter) {
           params.set("status", statusFilter);
