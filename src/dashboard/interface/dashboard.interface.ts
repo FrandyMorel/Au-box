@@ -25,20 +25,22 @@ export interface IIncidentStats {
 }
 
 /**
- * Información de un solicitante
+ * ✅ ACTUALIZADO: Información de un solicitante
+ * Cambio: name → requester, automationCount → count
  */
 export interface IRequester {
-  name: string;
-  automationCount: number;
+  requester: string; // ✅ Cambio: name -> requester
+  count: number; // ✅ Cambio: automationCount -> count
 }
 
 /**
- * Dato estadístico por período de tiempo
+ * ✅ ACTUALIZADO: Dato estadístico por período de tiempo
+ * Cambio: period → label (la propiedad "period" es más para casos específicos)
  */
 export interface IPeriodStat {
-  period: string;
+  label: string; // ✅ Cambio: period -> label (más descriptivo y legible)
   count: number;
-  percentage: number;
+  percentage?: number; // Opcional para mostrar porcentaje
 }
 
 /**
@@ -49,7 +51,7 @@ export interface IIncidentResolutionStats {
   year?: number;
   month?: number; // 1-12
   week?: number; // 1-53
-  data: IPeriodStat[];
+  data: IPeriodStat[]; // Ahora usa label en lugar de period
   total: number;
   average: number;
 }
@@ -62,7 +64,7 @@ export interface IAutomationCompletionStats {
   year?: number;
   month?: number; // 1-12
   week?: number; // 1-53
-  data: IPeriodStat[];
+  data: IPeriodStat[]; // Ahora usa label en lugar de period
   total: number;
   average: number;
 }
@@ -75,7 +77,7 @@ export interface IIncidentTransitionStats {
   year?: number;
   month?: number; // 1-12
   week?: number; // 1-53
-  data: IPeriodStat[];
+  data: IPeriodStat[]; // Ahora usa label en lugar de period
   total: number;
   average: number;
 }
@@ -86,7 +88,7 @@ export interface IIncidentTransitionStats {
 export interface IDashboardOverview {
   automationStats: IAutomationStats;
   incidentStats: IIncidentStats;
-  requesters: IRequester[];
+  requesters: IRequester[]; // Ahora usa requester y count
   updatedAt: Date;
 }
 

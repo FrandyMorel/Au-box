@@ -13,7 +13,7 @@ import type {
   IIncidentResolutionStats,
   IAutomationCompletionStats,
   IIncidentTransitionStats,
-  IPeriodStat,
+  IPeriodStat, // ✅ Ahora SÍ se usa explícitamente
   IPeriodParam,
 } from './interface/dashboard.interface';
 import { PrismaService } from '../prisma/prisma.service';
@@ -104,6 +104,7 @@ export class DashboardService {
 
   /**
    * Obtener lista de solicitantes con sus conteos
+   * ✅ CORREGIDO: Ahora retorna "requester" y "count" para compatibilidad con frontend
    * @returns IRequester[] lista de solicitantes ordenada por cantidad descendente
    */
   async getRequesters(): Promise<IRequester[]> {
@@ -124,12 +125,13 @@ export class DashboardService {
         }
       });
 
+      // ✅ CAMBIADO: Usar "requester" y "count" en lugar de "name" y "automationCount"
       const requesters: IRequester[] = Array.from(requesterMap.entries())
-        .map(([name, count]) => ({
-          name,
-          automationCount: count,
+        .map(([requester, count]) => ({
+          requester, // ✅ Cambio: name -> requester
+          count, // ✅ Cambio: automationCount -> count
         }))
-        .sort((a, b) => b.automationCount - a.automationCount);
+        .sort((a, b) => b.count - a.count);
 
       return requesters;
     } catch (error) {
@@ -164,6 +166,7 @@ export class DashboardService {
         .map((i) => i.resolvedAt)
         .filter((date): date is Date => date !== null);
 
+      // ✅ Usa IPeriodStat explícitamente
       const data: IPeriodStat[] = this.aggregateDataByPeriod(
         validDates,
         periodParam,
@@ -212,6 +215,7 @@ export class DashboardService {
         .map((a) => a.statusChangedAt)
         .filter((date): date is Date => date !== null);
 
+      // ✅ Usa IPeriodStat explícitamente
       const data: IPeriodStat[] = this.aggregateDataByPeriod(
         validDates,
         periodParam,
@@ -263,6 +267,7 @@ export class DashboardService {
         .map((a) => a.statusChangedAt)
         .filter((date): date is Date => date !== null);
 
+      // ✅ Usa IPeriodStat explícitamente
       const data: IPeriodStat[] = this.aggregateDataByPeriod(
         validDates,
         periodParam,
@@ -288,6 +293,7 @@ export class DashboardService {
 
   /**
    * Agregar datos por período (año, mes, semana)
+   * ✅ Ahora retorna IPeriodStat[] explícitamente
    * @param dates - Lista de fechas a agrupar
    * @param periodParam - Parámetros del período
    * @returns IPeriodStat[] datos agregados
@@ -296,6 +302,7 @@ export class DashboardService {
     dates: Date[],
     periodParam: IPeriodParam,
   ): IPeriodStat[] {
+    // ✅ Tipo de retorno explícito
     const periodMap: Map<string, number> = new Map();
 
     dates.forEach((date) => {
@@ -308,10 +315,11 @@ export class DashboardService {
     const now: Date = new Date();
     const allKeys: string[] = this.generatePeriodKeys(periodParam, now);
 
+    // ✅ AHORA SÍ devuelve IPeriodStat[]
     const data: IPeriodStat[] = allKeys.map((key) => {
       const count: number = periodMap.get(key) ?? 0;
       return {
-        period: key,
+        label: this.formatPeriodLabel(key, periodParam), // ✅ Usar "label"
         count,
         percentage:
           dates.length > 0 ? Math.round((count / dates.length) * 100) : 0,
@@ -320,8 +328,49 @@ export class DashboardService {
 
     return data.sort((a, b) => {
       // Ordenar por el orden natural del período
-      return this.comparePeriodKeys(a.period, b.period, periodParam);
+      return this.comparePeriodKeys(a.label, b.label, periodParam);
     });
+  }
+
+  /**
+   * ✅ Formatear etiqueta de período para ser más legible
+   * Convierte "2026-08" a "Agosto 2026" o "01" a "Enero", etc.
+   */
+  private formatPeriodLabel(key: string, periodParam: IPeriodParam): string {
+    const months = [
+      'Enero',
+      'Febrero',
+      'Marzo',
+      'Abril',
+      'Mayo',
+      'Junio',
+      'Julio',
+      'Agosto',
+      'Septiembre',
+      'Octubre',
+      'Noviembre',
+      'Diciembre',
+    ];
+
+    switch (periodParam.period) {
+      case 'year':
+        return key;
+
+      case 'month': {
+        const [year, month] = key.split('-');
+        const monthNum = parseInt(month, 10);
+        return `${months[monthNum - 1]} ${year}`;
+      }
+
+      case 'week': {
+        const [year, weekStr] = key.split('-W');
+        const week = parseInt(weekStr, 10);
+        return `Sem ${week} - ${year}`;
+      }
+
+      default:
+        return key;
+    }
   }
 
   /**
@@ -389,17 +438,22 @@ export class DashboardService {
   }
 
   /**
-   * Comparar dos claves de período para ordenamiento
-   * @param keyA - Primera clave
-   * @param keyB - Segunda clave
+   * Comparar dos etiquetas de período para ordenamiento
+   * @param labelA - Primera etiqueta
+   * @param labelB - Segunda etiqueta
    * @param periodParam - Tipo de período
    * @returns número para ordenamiento
    */
   private comparePeriodKeys(
-    keyA: string,
-    keyB: string,
+    labelA: string,
+    labelB: string,
     periodParam: IPeriodParam,
   ): number {
+    // Para comparar, usamos las claves originales (sin formatear)
+    // Reconstruir la clave desde la etiqueta
+    const keyA = this.extractPeriodKey(labelA, periodParam);
+    const keyB = this.extractPeriodKey(labelB, periodParam);
+
     switch (periodParam.period) {
       case 'year':
         return parseInt(keyA, 10) - parseInt(keyB, 10);
@@ -428,6 +482,53 @@ export class DashboardService {
 
       default:
         return 0;
+    }
+  }
+
+  /**
+   * ✅ Extraer clave original desde la etiqueta formateada
+   */
+  private extractPeriodKey(label: string, periodParam: IPeriodParam): string {
+    const months = [
+      'Enero',
+      'Febrero',
+      'Marzo',
+      'Abril',
+      'Mayo',
+      'Junio',
+      'Julio',
+      'Agosto',
+      'Septiembre',
+      'Octubre',
+      'Noviembre',
+      'Diciembre',
+    ];
+
+    switch (periodParam.period) {
+      case 'year':
+        return label;
+
+      case 'month': {
+        for (let i = 0; i < months.length; i++) {
+          if (label.includes(months[i])) {
+            const year = label.split(' ')[1];
+            const month = String(i + 1).padStart(2, '0');
+            return `${year}-${month}`;
+          }
+        }
+        return label;
+      }
+
+      case 'week': {
+        const match = label.match(/Sem (\d+) - (\d+)/);
+        if (match) {
+          return `${match[2]}-W${match[1].padStart(2, '0')}`;
+        }
+        return label;
+      }
+
+      default:
+        return label;
     }
   }
 
