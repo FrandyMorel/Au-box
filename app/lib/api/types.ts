@@ -168,25 +168,27 @@ export interface MessageResponse {
 // ============================================
 
 export interface DashboardOverview {
-  automations: AutomationStatistics;
-  incidents: {
-    total: number;
-    open: number;
-    inProgress: number;
-    resolved: number;
-    closed: number;
-  };
+  totalAutomations: number;
+  activeAutomations: number;
+  completedAutomations: number;
+  inIncidentAutomations: number;
+
+  totalIncidents: number;
+  openIncidents: number;
+  resolvedIncidents: number;
+  closedIncidents: number;
+
   requesters: string[];
 }
 
-export interface AutomationDashboardStats {
+export interface AutomationStats {
   total: number;
   active: number;
   completed: number;
   inIncident: number;
 }
 
-export interface IncidentDashboardStats {
+export interface IncidentStats {
   total: number;
   open: number;
   inProgress: number;
@@ -194,35 +196,50 @@ export interface IncidentDashboardStats {
   closed: number;
 }
 
-export interface DashboardRequester {
+export interface Requester {
   requester: string;
   count: number;
 }
 
+export type DashboardPeriod =
+  | {
+      period: "year";
+      year?: number;
+    }
+  | {
+      period: "month";
+      year?: number;
+      month?: number;
+    }
+  | {
+      period: "week";
+      year?: number;
+      week?: number;
+    };
+
 export interface IncidentResolutionStats {
-  period: "year" | "month" | "week";
-  year: number;
-  month?: number;
-  week?: number;
+  period: string;
   total: number;
-  resolved: number;
-  closed: number;
+  data: {
+    label: string;
+    count: number;
+  }[];
 }
 
 export interface AutomationCompletionStats {
-  period: "year" | "month" | "week";
-  year: number;
-  month?: number;
-  week?: number;
+  period: string;
   total: number;
-  completed: number;
+  data: {
+    label: string;
+    count: number;
+  }[];
 }
 
 export interface IncidentTransitionStats {
-  period: "year" | "month" | "week";
-  year: number;
-  month?: number;
-  week?: number;
+  period: string;
   total: number;
-  transitions: number;
+  data: {
+    label: string;
+    count: number;
+  }[];
 }

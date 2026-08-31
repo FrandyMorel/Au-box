@@ -1,9 +1,35 @@
 import { apiClient } from "./client";
 
-export type DashboardPeriod = "year" | "month" | "week";
+// ============================================
+// TIPOS
+// ============================================
+
+export type DashboardPeriod = {
+  period: "year" | "month" | "week";
+  year?: number;
+  month?: number;
+  week?: number;
+};
 
 // ============================================
-// AUTOMATIZACIONES
+// OVERVIEW
+// GET /dashboard/overview
+// ============================================
+
+export interface DashboardOverview {
+  totalAutomations: number;
+  activeAutomations: number;
+  completedAutomations: number;
+  incidentAutomations: number;
+  totalIncidents: number;
+  openIncidents: number;
+  resolvedIncidents: number;
+  requesters: string[];
+}
+
+// ============================================
+// AUTOMATION STATS
+// GET /dashboard/automations/stats
 // ============================================
 
 export interface AutomationStats {
@@ -14,7 +40,8 @@ export interface AutomationStats {
 }
 
 // ============================================
-// INCIDENCIAS
+// INCIDENT STATS
+// GET /dashboard/incidents/stats
 // ============================================
 
 export interface IncidentStats {
@@ -26,71 +53,83 @@ export interface IncidentStats {
 }
 
 // ============================================
-// SOLICITANTES
+// REQUESTERS
+// GET /dashboard/requesters
 // ============================================
 
-export interface RequesterStats {
+export interface Requester {
   requester: string;
   count: number;
 }
 
 // ============================================
-// RESOLUCIÓN DE INCIDENCIAS
+// INCIDENT RESOLUTION
+// GET /dashboard/incidents/resolution
 // ============================================
 
 export interface IncidentResolutionStats {
-  period: DashboardPeriod;
-  year: number;
-  month?: number;
-  week?: number;
-  data: {
+  period: string;
+  total: number;
+  data: Array<{
     label: string;
     count: number;
-  }[];
+  }>;
 }
 
 // ============================================
-// COMPLETADO DE AUTOMATIZACIONES
+// AUTOMATION COMPLETION
+// GET /dashboard/automations/completion
 // ============================================
 
 export interface AutomationCompletionStats {
-  period: DashboardPeriod;
-  year: number;
-  month?: number;
-  week?: number;
-  data: {
+  period: string;
+  total: number;
+  data: Array<{
     label: string;
     count: number;
-  }[];
+  }>;
 }
 
 // ============================================
-// TRANSICIONES A INCIDENCIA
+// INCIDENT TRANSITION
+// GET /dashboard/automations/incident-transition
 // ============================================
 
 export interface IncidentTransitionStats {
-  period: DashboardPeriod;
-  year: number;
-  month?: number;
-  week?: number;
-  data: {
+  period: string;
+  total: number;
+  data: Array<{
     label: string;
     count: number;
-  }[];
+  }>;
 }
 
 // ============================================
-// OVERVIEW
+// HELPER PARA QUERY DE PERÍODO
 // ============================================
 
-export interface DashboardOverview {
-  automations: AutomationStats;
-  incidents: IncidentStats;
-  requesters: RequesterStats[];
+function buildPeriodQuery(period: DashboardPeriod): string {
+  const params = new URLSearchParams();
+
+  params.set("period", period.period);
+
+  if (period.year !== undefined) {
+    params.set("year", String(period.year));
+  }
+
+  if (period.month !== undefined) {
+    params.set("month", String(period.month));
+  }
+
+  if (period.week !== undefined) {
+    params.set("week", String(period.week));
+  }
+
+  return params.toString();
 }
 
 // ============================================
-// OVERVIEW
+// DASHBOARD OVERVIEW
 // GET /dashboard/overview
 // ============================================
 
@@ -121,8 +160,8 @@ export async function getDashboardIncidentStats(): Promise<IncidentStats> {
 // GET /dashboard/requesters
 // ============================================
 
-export async function getDashboardRequesters(): Promise<RequesterStats[]> {
-  return apiClient<RequesterStats[]>("/dashboard/requesters");
+export async function getDashboardRequesters(): Promise<Requester[]> {
+  return apiClient<Requester[]>("/dashboard/requesters");
 }
 
 // ============================================
@@ -131,31 +170,12 @@ export async function getDashboardRequesters(): Promise<RequesterStats[]> {
 // ============================================
 
 export async function getIncidentResolutionStats(
-  params: {
-    period: DashboardPeriod;
-    year?: number;
-    month?: number;
-    week?: number;
-  },
+  period: DashboardPeriod,
 ): Promise<IncidentResolutionStats> {
-  const searchParams = new URLSearchParams();
-
-  searchParams.set("period", params.period);
-
-  if (params.year !== undefined) {
-    searchParams.set("year", String(params.year));
-  }
-
-  if (params.month !== undefined) {
-    searchParams.set("month", String(params.month));
-  }
-
-  if (params.week !== undefined) {
-    searchParams.set("week", String(params.week));
-  }
+  const query = buildPeriodQuery(period);
 
   return apiClient<IncidentResolutionStats>(
-    `/dashboard/incidents/resolution?${searchParams.toString()}`,
+    `/dashboard/incidents/resolution?${query}`,
   );
 }
 
@@ -165,64 +185,26 @@ export async function getIncidentResolutionStats(
 // ============================================
 
 export async function getAutomationCompletionStats(
-  params: {
-    period: DashboardPeriod;
-    year?: number;
-    month?: number;
-    week?: number;
-  },
+  period: DashboardPeriod,
 ): Promise<AutomationCompletionStats> {
-  const searchParams = new URLSearchParams();
-
-  searchParams.set("period", params.period);
-
-  if (params.year !== undefined) {
-    searchParams.set("year", String(params.year));
-  }
-
-  if (params.month !== undefined) {
-    searchParams.set("month", String(params.month));
-  }
-
-  if (params.week !== undefined) {
-    searchParams.set("week", String(params.week));
-  }
+  const query = buildPeriodQuery(period);
 
   return apiClient<AutomationCompletionStats>(
-    `/dashboard/automations/completion?${searchParams.toString()}`,
+    `/dashboard/automations/completion?${query}`,
   );
 }
 
 // ============================================
-// INCIDENT TRANSITION
+// AUTOMATION INCIDENT TRANSITION
 // GET /dashboard/automations/incident-transition
 // ============================================
 
 export async function getIncidentTransitionStats(
-  params: {
-    period: DashboardPeriod;
-    year?: number;
-    month?: number;
-    week?: number;
-  },
+  period: DashboardPeriod,
 ): Promise<IncidentTransitionStats> {
-  const searchParams = new URLSearchParams();
-
-  searchParams.set("period", params.period);
-
-  if (params.year !== undefined) {
-    searchParams.set("year", String(params.year));
-  }
-
-  if (params.month !== undefined) {
-    searchParams.set("month", String(params.month));
-  }
-
-  if (params.week !== undefined) {
-    searchParams.set("week", String(params.week));
-  }
+  const query = buildPeriodQuery(period);
 
   return apiClient<IncidentTransitionStats>(
-    `/dashboard/automations/incident-transition?${searchParams.toString()}`,
+    `/dashboard/automations/incident-transition?${query}`,
   );
 }

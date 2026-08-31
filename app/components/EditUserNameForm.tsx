@@ -110,7 +110,7 @@ export default function EditUserNameForm({
         <button
           type="submit"
           disabled={loading}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white disabled:opacity-50"
+          className="rounded-lg bg-[#6B4071] px-4 py-2 text-sm text-white disabled:opacity-50 cursor-pointer"
         >
           {loading ? "Guardando..." : "Guardar"}
         </button>
@@ -119,7 +119,7 @@ export default function EditUserNameForm({
           type="button"
           onClick={onCancel}
           disabled={loading}
-          className="rounded-lg border px-4 py-2 text-sm"
+          className="rounded-lg border px-4 py-2 text-sm cursor-pointer"
         >
           Cancelar
         </button>

@@ -1,30 +1,18 @@
 import React from "react";
 
 export const itemSidebar = [
-  /*
+
   {
     id: 1,
     title: "Dashboard",
     icon: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="1em"
-        height="1em"
-        viewBox="0 0 24 24"
-      >
-        <path d="M0 0h24v24H0z" fill="none" />
-        <path
-          fill="none"
-          stroke="#6b4071"
-          strokeLinejoin="round"
-          strokeWidth="1.5"
-          d="M10.5 8.75v-2c0-1.644 0-2.466-.454-3.019a2 2 0 0 0-.277-.277C9.216 3 8.394 3 6.75 3s-2.466 0-3.019.454a2 2 0 0 0-.277.277C3 4.284 3 5.106 3 6.75v2c0 1.644 0 2.466.454 3.019q.125.152.277.277c.553.454 1.375.454 3.019.454s2.466 0 3.019-.454q.152-.125.277-.277c.454-.553.454-1.375-.454-1.375ZM7.75 15.5h-2c-.698 0-1.047 0-1.33.086a2 2 0 0 0-1.334 1.333C3 17.203 3 17.552 3 18.25s0 1.047.086 1.33a2 2 0 0 0 1.333 1.334C4.703 21 5.052 21 5.75 21h2c.698 0 1.047 0 1.33-.086a2 2 0 0 0 1.334-1.333c.086-.284.086-.633-.086-1.331s0-1.047-.086-1.33a2 2 0 0 0-1.333-1.334c-.284-.086-.633-.086-1.331-.086Z"
-        />
-      </svg>
+     <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
+	<path d="M0 0h24v24H0z" fill="none" />
+	<path fill="#14243c" d="M4 13h6a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1m-1 7a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-4a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1zm10 0a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-7a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1zm1-10h6a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1" />
+</svg>
     ),
     link: "/dashboard",
   },
-  */
 
   {
     id: 2,
@@ -40,7 +28,7 @@ export const itemSidebar = [
 
         <g
           fill="none"
-          stroke="#6b4071"
+          stroke="#14243c"
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="2"
@@ -67,17 +55,17 @@ export const itemSidebar = [
         <path d="M0 0h32v32H0z" fill="none" />
 
         <path
-          fill="#6b4071"
+          fill="#14243c"
           d="M21 30a8 8 0 1 1 8-8a8.009 8.009 0 0 1-8 8m0-14a6 6 0 1 0 6 6a6.007 6.007 0 0 0-6-6"
         />
 
         <path
-          fill="#6b4071"
+          fill="#14243c"
           d="M22.59 25L20 22.41V18h2v3.59l2 2z"
         />
 
         <path
-          fill="#6b4071"
+          fill="#14243c"
           d="M28 6a2 2 0 0 0-2-2h-4V2h-2v2h-8V2h-2v2H6a2 2 0 0 0-2 2v20a2 2 0 0 0 2 2h4v-2H6V6h4v2h2V6h8v2h2V6h4v6h2Z"
         />
       </svg>

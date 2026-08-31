@@ -11,8 +11,8 @@ export default function Sidebar() {
     <aside className="flex h-screen w-64 flex-col bg-[#88809C]">
       {/* Logo */}
       <div className="px-6 py-8">
-        <h1 className="text-2xl font-bold text-white">
-          VUO-AU
+        <h1 className="text-2xl font-bold  text-[#14243C]">
+          AU-BOX
         </h1>
       </div>
 

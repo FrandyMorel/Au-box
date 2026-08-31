@@ -60,7 +60,7 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen p-6" style={{ backgroundColor: "#E9DBD7" }}>
+      <main className="min-h-screen p-4 md:p-6" style={{ backgroundColor: "#E9DBD7" }}>
         <div className="mx-auto max-w-3xl">
           <div className="flex min-h-[300px] items-center justify-center">
             <p className="text-sm text-gray-500">
@@ -74,7 +74,7 @@ export default function ProfilePage() {
 
   if (!user) {
     return (
-      <main className="min-h-screen p-6" style={{ backgroundColor: "#E9DBD7" }}>
+      <main className="min-h-screen p-4 md:p-6" style={{ backgroundColor: "#E9DBD7" }}>
         <div className="mx-auto max-w-3xl">
           <div className="rounded-xl border border-red-200 bg-red-50 p-6">
             <h1 className="text-lg font-semibold text-red-800">
@@ -92,12 +92,11 @@ export default function ProfilePage() {
   }
 
   return (
-    <main className="min-h-screen p-6" style={{ backgroundColor: "#E9DBD7" }}>
-      <div className="mx-auto max-w-3xl">
+    <main className="min-h-screen p-4 md:p-6" style={{ backgroundColor: "#E9DBD7" }}>
+      <div className="mx-auto max-w-3xl space-y-4">
 
         {/* HEADER */}
-
-        <div className="mb-6">
+        <div>
           <h1 className="text-2xl font-bold" style={{ color: "#6B4071" }}>
             Mi perfil
           </h1>
@@ -108,39 +107,33 @@ export default function ProfilePage() {
         </div>
 
         {/* MENSAJE DE ERROR */}
-
         {error && (
-          <div className="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
             {error}
           </div>
         )}
 
         {/* MENSAJE DE ÉXITO */}
-
         {success && (
-          <div className="mb-5 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+          <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
             {success}
           </div>
         )}
 
         {/* PERFIL */}
-
-        <div className="mb-6">
-          <UserProfile
-            user={user}
-            onUserUpdated={handleUserUpdated}
-          />
-        </div>
+        <UserProfile
+          user={user}
+          onUserUpdated={handleUserUpdated}
+        />
 
         {/* SEGURIDAD */}
-
-        <section className="rounded-xl border bg-transparent p-6 shadow-sm">
-          <div className="mb-5">
-            <h2 className="text-lg font-semibold" style={{ color: "#6B4071" }}>
+        <section className="rounded-xl border bg-transparent p-4 shadow-sm">
+          <div className="mb-4">
+            <h2 className="text-base font-semibold" style={{ color: "#6B4071" }}>
               Seguridad
             </h2>
 
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-xs text-gray-500">
               Cambia la contraseña de tu cuenta.
             </p>
           </div>
@@ -153,7 +146,7 @@ export default function ProfilePage() {
                 setSuccess("");
                 setError("");
               }}
-              className="buttonPrimary px-5 py-3 text-sm font-medium"
+              className="buttonPrimary px-4 py-2 text-sm font-medium"
             >
               Cambiar contraseña
             </button>

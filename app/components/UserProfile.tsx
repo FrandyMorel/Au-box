@@ -17,18 +17,18 @@ export default function UserProfile({
   const [editingName, setEditingName] = useState(false);
 
   return (
-    <section className="rounded-xl border bg-transparent p-6 shadow-sm">
-      <div className="mb-6">
-        <h2 className="text-lg font-semibold text-gray-900">
+    <section className="rounded-xl border bg-transparent p-4 shadow-sm">
+      <div className="mb-4">
+        <h2 className="text-base font-semibold text-gray-900">
           Información personal
         </h2>
 
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-xs text-gray-500">
           Información asociada a tu cuenta.
         </p>
       </div>
 
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2">
         {/* NOMBRE */}
         <div>
           <p className="text-xs font-medium text-gray-500">
@@ -44,20 +44,22 @@ export default function UserProfile({
               <button
                 type="button"
                 onClick={() => setEditingName(true)}
-                className="buttonSecondary mt-2 px-4 py-2 text-sm font-medium"
+                className="buttonSecondary mt-2 px-3 py-1 text-xs font-medium"
               >
                 Editar nombre
               </button>
             </>
           ) : (
-            <EditUserNameForm
-              currentName={user.name}
-              onUpdated={(updatedUser) => {
-                onUserUpdated(updatedUser);
-                setEditingName(false);
-              }}
-              onCancel={() => setEditingName(false)}
-            />
+            <div className="mt-2">
+              <EditUserNameForm
+                currentName={user.name}
+                onUpdated={(updatedUser) => {
+                  onUserUpdated(updatedUser);
+                  setEditingName(false);
+                }}
+                onCancel={() => setEditingName(false)}
+              />
+            </div>
           )}
         </div>
 
