@@ -130,6 +130,33 @@ La gestión de usuarios se mantiene intencionalmente sencilla para mantener el a
 
 Au-box utiliza una arquitectura cliente-servidor basada en una API REST.
 
+### Backend
+NestJS — Framework para construcción de la API REST.
+
+TypeScript — Lenguaje principal.
+
+Prisma — ORM para interacción con la base de datos.
+
+PostgreSQL — Sistema gestor de base de datos.
+
+Supabase — Plataforma utilizada para alojar PostgreSQL.
+
+JWT — Autenticación y autorización.
+
+### Frontend
+
+Next.js — Framework para la aplicación web.
+
+React — Biblioteca para construcción de interfaces.
+
+TypeScript — Tipado estático.
+
+Tailwind CSS — Estilos y diseño responsive.
+
+SweetAlert2 — Alertas y confirmaciones.
+
+Recharts — Visualización de estadísticas.
+
 ```text
                          ┌───────────────────┐
                          │      Usuario      │
@@ -179,20 +206,6 @@ Au-box utiliza una arquitectura cliente-servidor basada en una API REST.
                                    ▼
                               Deployment
 
-### Backend
-NestJS — Framework para construcción de la API REST.
-TypeScript — Lenguaje principal.
-Prisma — ORM para interacción con la base de datos.
-PostgreSQL — Sistema gestor de base de datos.
-Supabase — Plataforma utilizada para alojar PostgreSQL.
-JWT — Autenticación y autorización.
-### Frontend
-Next.js — Framework para la aplicación web.
-React — Biblioteca para construcción de interfaces.
-TypeScript — Tipado estático.
-Tailwind CSS — Estilos y diseño responsive.
-SweetAlert2 — Alertas y confirmaciones.
-Recharts — Visualización de estadísticas.
 
 
 Cliente solicita crédito
