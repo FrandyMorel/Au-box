@@ -5,15 +5,16 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: ['http://localhost:3000', 'https://aubox.netlify.app'],
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
 
-  const port = process.env.PORT || 3001;
+  await app.listen(process.env.PORT || 3000);
 
-  await app.listen(port);
-
-  console.log(`✅ Servidor corriendo en el puerto ${port}`);
+  console.log(
+    `✅ Servidor corriendo en http://localhost:${process.env.PORT || 3000}`,
+  );
 }
 
 bootstrap().catch((error) => {
