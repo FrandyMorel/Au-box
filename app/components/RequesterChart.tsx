@@ -19,45 +19,75 @@ interface RequestersChartProps {
 export default function RequestersChart({
   data,
 }: RequestersChartProps) {
-  if (data.length === 0) {
+  console.log("📊 Requesters Data:", data);
+
+  if (!data || data.length === 0) {
     return (
-      <div className="flex h-48 items-center justify-center text-[#6C6A84]">
-        No hay datos disponibles.
+      <div className="flex h-56 items-center justify-center text-xs text-[#6C6A84]">
+        No hay datos disponibles
+      </div>
+    );
+  }
+
+  // Validar que los datos tengan la estructura correcta
+  const validData = data.filter(
+    (d) => d.requester && typeof d.count === "number",
+  );
+
+  if (validData.length === 0) {
+    console.warn("⚠️ Los datos no tienen la estructura esperada:", data);
+    return (
+      <div className="flex h-56 items-center justify-center text-xs text-[#6C6A84]">
+        Formato de datos inválido
       </div>
     );
   }
 
   return (
-    <div className="h-48 w-full">
+    <div className="h-56 w-full">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
-          data={data}
+          data={validData}
           layout="vertical"
           margin={{
-            top: 0,
-            right: 20,
-            left: 80,
-            bottom: 0,
+            top: 5,
+            right: 15,
+            left: 70,
+            bottom: 5,
           }}
         >
-          <CartesianGrid strokeDasharray="3 3" />
+          <CartesianGrid 
+            strokeDasharray="3 3" 
+            stroke="#e0e0e0"
+            horizontal={true}
+            vertical={false}
+          />
 
-          <XAxis type="number" allowDecimals={false} tick={{ fontSize: 12 }} />
+          <XAxis 
+            type="number" 
+            allowDecimals={false} 
+            tick={{ fontSize: 10 }}
+            width={40}
+          />
 
           <YAxis
             type="category"
             dataKey="requester"
-            width={75}
-            tick={{ fontSize: 12 }}
+            width={65}
+            tick={{ fontSize: 10 }}
           />
 
-          <Tooltip />
+          <Tooltip 
+            contentStyle={{ fontSize: "11px" }}
+            formatter={(value) => [value, "Automatizaciones"]}
+          />
 
           <Bar
             dataKey="count"
             name="Automatizaciones"
             fill="#6B4071"
-            radius={[0, 6, 6, 0]}
+            radius={[0, 4, 4, 0]}
+            isAnimationActive={true}
           />
         </BarChart>
       </ResponsiveContainer>

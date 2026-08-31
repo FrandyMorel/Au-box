@@ -30,7 +30,7 @@ export default function IncidentResolutionChart({
   const currentDate = new Date();
 
   const [periodType, setPeriodType] =
-    useState<PeriodType>("month"); // Cambié a "month" por defecto (más útil)
+    useState<PeriodType>("month");
 
   const [year, setYear] = useState(
     initialYear ?? currentDate.getFullYear(),
@@ -73,27 +73,11 @@ export default function IncidentResolutionChart({
         const result =
           await getIncidentResolutionStats(period);
 
-        // Validación de coherencia: si el total es 1, ningún punto debería ser > 1
-        if (result && result.data) {
-          const maxValue = Math.max(
-            ...result.data.map((d) => d.count || 0),
-          );
-          
-          if (maxValue > result.total) {
-            console.warn(
-              "⚠️ Incoherencia detectada: el máximo en un punto es",
-              maxValue,
-              "pero el total del período es",
-              result.total,
-            );
-            // Opcionalmente, normalizar los datos:
-            // result.data = result.data.map(d => ({...d, count: Math.round(d.count * (result.total / maxValue))}))
-          }
-        }
+        console.log("📊 Incident Resolution Data:", result);
 
         setData(result);
       } catch (err) {
-        console.error(err);
+        console.error("❌ Error loading data:", err);
 
         setError(
           "No se pudieron cargar las estadísticas de resolución.",
@@ -107,10 +91,10 @@ export default function IncidentResolutionChart({
   }, [periodType, year, month, week]);
 
   return (
-    <div className="rounded-2xl border border-[#6C6A84]/30 bg-white p-4 shadow-sm">
-      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+    <div className="rounded-2xl border border-[#6C6A84]/30 bg-white p-3 shadow-sm">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <h2 className="text-base font-bold text-[#14243C]">
+          <h2 className="text-sm font-bold text-[#14243C]">
             Tiempo de resolución
           </h2>
 
@@ -119,11 +103,11 @@ export default function IncidentResolutionChart({
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1">
           <button
             type="button"
             onClick={() => setPeriodType("month")}
-            className={`rounded-lg px-3 py-1 text-xs font-medium transition ${
+            className={`rounded px-2 py-0.5 text-xs font-medium transition ${
               periodType === "month"
                 ? "bg-[#6B4071] text-white"
                 : "border border-[#6C6A84]/40 bg-transparent text-[#6C6A84] hover:bg-[#6C6A84]/10"
@@ -135,7 +119,7 @@ export default function IncidentResolutionChart({
           <button
             type="button"
             onClick={() => setPeriodType("week")}
-            className={`rounded-lg px-3 py-1 text-xs font-medium transition ${
+            className={`rounded px-2 py-0.5 text-xs font-medium transition ${
               periodType === "week"
                 ? "bg-[#6B4071] text-white"
                 : "border border-[#6C6A84]/40 bg-transparent text-[#6C6A84] hover:bg-[#6C6A84]/10"
@@ -147,7 +131,7 @@ export default function IncidentResolutionChart({
           <button
             type="button"
             onClick={() => setPeriodType("year")}
-            className={`rounded-lg px-3 py-1 text-xs font-medium transition ${
+            className={`rounded px-2 py-0.5 text-xs font-medium transition ${
               periodType === "year"
                 ? "bg-[#6B4071] text-white"
                 : "border border-[#6C6A84]/40 bg-transparent text-[#6C6A84] hover:bg-[#6C6A84]/10"
@@ -158,13 +142,13 @@ export default function IncidentResolutionChart({
         </div>
       </div>
 
-      <div className="mt-3 flex flex-wrap gap-2">
+      <div className="mt-2 flex flex-wrap gap-1">
         <select
           value={year}
           onChange={(e) =>
             setYear(Number(e.target.value))
           }
-          className="rounded-lg border border-[#6C6A84]/40 bg-[#E9DBD7] px-2 py-1 text-xs text-[#14243C] outline-none"
+          className="rounded border border-[#6C6A84]/40 bg-[#E9DBD7] px-1.5 py-0.5 text-xs text-[#14243C] outline-none"
         >
           {Array.from(
             { length: 5 },
@@ -183,7 +167,7 @@ export default function IncidentResolutionChart({
             onChange={(e) =>
               setMonth(Number(e.target.value))
             }
-            className="rounded-lg border border-[#6C6A84]/40 bg-[#E9DBD7] px-2 py-1 text-xs text-[#14243C] outline-none"
+            className="rounded border border-[#6C6A84]/40 bg-[#E9DBD7] px-1.5 py-0.5 text-xs text-[#14243C] outline-none"
           >
             <option value={1}>Enero</option>
             <option value={2}>Febrero</option>
@@ -206,7 +190,7 @@ export default function IncidentResolutionChart({
             onChange={(e) =>
               setWeek(Number(e.target.value))
             }
-            className="rounded-lg border border-[#6C6A84]/40 bg-[#E9DBD7] px-2 py-1 text-xs text-[#14243C] outline-none"
+            className="rounded border border-[#6C6A84]/40 bg-[#E9DBD7] px-1.5 py-0.5 text-xs text-[#14243C] outline-none"
           >
             {Array.from(
               { length: 53 },
@@ -216,25 +200,25 @@ export default function IncidentResolutionChart({
                 key={weekNumber}
                 value={weekNumber}
               >
-                Semana {weekNumber}
+                Sem {weekNumber}
               </option>
             ))}
           </select>
         )}
       </div>
 
-      <div className="mt-4 h-48 w-full">
+      <div className="mt-3 h-40 w-full">
         {loading ? (
-          <div className="flex h-full items-center justify-center text-[#6C6A84]">
+          <div className="flex h-full items-center justify-center text-xs text-[#6C6A84]">
             Cargando...
           </div>
         ) : error ? (
-          <div className="flex h-full items-center justify-center text-red-500">
+          <div className="flex h-full items-center justify-center text-xs text-red-500">
             {error}
           </div>
-        ) : !data || data.data.length === 0 ? (
-          <div className="flex h-full items-center justify-center text-[#6C6A84]">
-            No hay datos para este período.
+        ) : !data || !data.data || data.data.length === 0 ? (
+          <div className="flex h-full items-center justify-center text-xs text-[#6C6A84]">
+            No hay datos
           </div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
@@ -242,39 +226,40 @@ export default function IncidentResolutionChart({
               data={data.data}
               margin={{
                 top: 5,
-                right: 20,
+                right: 10,
                 left: 0,
-                bottom: 5,
+                bottom: 20,
               }}
             >
-              <CartesianGrid strokeDasharray="3 3" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
 
               <XAxis
                 dataKey="label"
-                tick={{ fontSize: 12 }}
+                tick={{ fontSize: 10 }}
                 angle={-45}
                 textAnchor="end"
-                height={60}
+                height={50}
               />
 
               <YAxis
                 allowDecimals={false}
-                tick={{ fontSize: 12 }}
+                tick={{ fontSize: 10 }}
+                width={30}
               />
 
-              <Tooltip
+              <Tooltip 
+                contentStyle={{ fontSize: "11px" }}
                 formatter={(value) => [value, "Resueltas"]}
-                labelFormatter={(label) => `${label}`}
               />
 
               <Line
                 type="monotone"
                 dataKey="count"
                 stroke="#6B4071"
-                strokeWidth={2}
-                dot={{ fill: "#6B4071", r: 4 }}
-                activeDot={{ r: 6 }}
-                name="Incidencias resueltas"
+                strokeWidth={1.5}
+                dot={{ fill: "#6B4071", r: 3 }}
+                activeDot={{ r: 5 }}
+                isAnimationActive={true}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -283,10 +268,7 @@ export default function IncidentResolutionChart({
 
       {data && (
         <div className="mt-2 text-xs text-[#6C6A84]">
-          Total resueltas en este período:{" "}
-          <span className="font-semibold text-[#14243C]">
-            {data.total}
-          </span>
+          Total: <span className="font-semibold text-[#14243C]">{data.total}</span>
         </div>
       )}
     </div>
@@ -295,13 +277,8 @@ export default function IncidentResolutionChart({
 
 function getWeekNumber(date: Date): number {
   const target = new Date(date.valueOf());
-
-  const dayNumber =
-    (date.getDay() + 6) % 7;
-
-  target.setDate(
-    target.getDate() - dayNumber + 3,
-  );
+  const dayNumber = (date.getDay() + 6) % 7;
+  target.setDate(target.getDate() - dayNumber + 3);
 
   const firstThursday = new Date(
     target.getFullYear(),
