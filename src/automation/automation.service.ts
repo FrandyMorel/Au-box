@@ -58,6 +58,7 @@ export class AutomationsService {
               id: true,
               name: true,
               email: true,
+              department: true,
             },
           },
           incidents: {
@@ -94,6 +95,7 @@ export class AutomationsService {
         search: query.search,
         status: query.status,
         requestedBy: query.requestedBy,
+        department: query.department,
         page,
         limit,
         skip,
@@ -111,6 +113,7 @@ export class AutomationsService {
                 id: true,
                 name: true,
                 email: true,
+                department: true,
               },
             },
             incidents: {
@@ -173,6 +176,7 @@ export class AutomationsService {
               id: true,
               name: true,
               email: true,
+              department: true,
             },
           },
           incidents: {
@@ -246,6 +250,7 @@ export class AutomationsService {
               id: true,
               name: true,
               email: true,
+              department: true,
             },
           },
           incidents: {
@@ -308,6 +313,7 @@ export class AutomationsService {
               id: true,
               name: true,
               email: true,
+              department: true,
             },
           },
           incidents: {
@@ -394,6 +400,11 @@ export class AutomationsService {
         distinct: ['requestedBy'],
       });
 
+      const departments = await this.prisma.user.findMany({
+        select: { department: true },
+        distinct: ['department'],
+      });
+
       return {
         total,
         active,
@@ -402,6 +413,7 @@ export class AutomationsService {
         totalIncidents,
         openIncidents,
         requesters: requesters.map((r) => r.requestedBy),
+        departments: departments.map((d) => d.department),
       };
     } catch (error) {
       this.handleDatabaseError(error, 'obtener estadísticas');
@@ -437,6 +449,7 @@ export class AutomationsService {
     // Filtro por estado
     if (query.status && query.status.trim()) {
       const validStatuses = Object.values(AutomationStatus);
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
       if (validStatuses.includes(query.status as AutomationStatus)) {
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         whereConditions.status = query.status as AutomationStatus;
@@ -448,6 +461,16 @@ export class AutomationsService {
       whereConditions.requestedBy = {
         contains: query.requestedBy.trim(),
         mode: 'insensitive',
+      };
+    }
+
+    // Filtro por departamento (relación con user)
+    if (query.department && query.department.trim()) {
+      whereConditions.user = {
+        department: {
+          equals: query.department.trim(),
+          mode: 'insensitive',
+        },
       };
     }
 
@@ -472,6 +495,7 @@ export class AutomationsService {
       id: number;
       name: string;
       email: string;
+      department: string;
     } | null;
     incidents: Array<{
       id: number;
@@ -507,6 +531,7 @@ export class AutomationsService {
         id: automation.user.id,
         name: automation.user.name,
         email: automation.user.email,
+        department: automation.user.department,
       },
       incidentCount: automation.incidents?.length || 0,
       activeIncidents,

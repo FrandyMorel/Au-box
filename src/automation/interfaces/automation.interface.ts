@@ -29,6 +29,7 @@ export interface IAutomationUser {
   readonly id: number;
   readonly email: string;
   readonly name: string;
+  readonly department: string;
 }
 
 /**
@@ -65,6 +66,7 @@ export interface IAutomationResponse {
     readonly id: number;
     readonly name: string;
     readonly email: string;
+    readonly department: string;
   };
   readonly incidentCount: number;
   readonly activeIncidents: number;
@@ -99,6 +101,7 @@ export interface IAutomationQueryOptions {
   readonly search?: string;
   readonly status?: AutomationStatus;
   readonly requestedBy?: string;
+  readonly department?: string;
   readonly userId?: number;
 }
 
@@ -120,6 +123,12 @@ export interface IAutomationWhereInput {
   readonly requestedBy?: {
     readonly contains: string;
     readonly mode: 'insensitive';
+  };
+  readonly user?: {
+    readonly department?: {
+      readonly equals: string;
+      readonly mode: 'insensitive';
+    };
   };
 }
 
@@ -161,4 +170,5 @@ export interface IStatisticsResponse {
   readonly totalIncidents: number;
   readonly openIncidents: number;
   readonly requesters: string[];
+  readonly departments: string[];
 }
